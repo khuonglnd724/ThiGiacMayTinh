@@ -1,0 +1,10 @@
+2026-06-24  - Created AI plan files under docs/plan/AIPlan:
+- 00_overview.md
+- 01_data_acquisition.md
+- 02_preprocessing_augmentation.md
+- 03_training_pipeline.md
+- 04_environment_dependencies.md
+- 05_evaluation_metrics.md
+- 06_inference_integration.md
+
+Notes: Plans follow project rule (Goal/Input/Output/How to do/Lưu ý). Created by GitHub Copilot assistant.
