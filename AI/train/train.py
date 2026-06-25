@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from PIL import Image
+
 
 DEFAULT_PROJECT_NAME = "ai-segmentation"
 DEFAULT_MODEL = "yolo11n-seg.pt"
-DEFAULT_IMAGE_SIZE = 416
+DEFAULT_IMAGE_SIZE = 640
 DEFAULT_BATCH_SIZE = 2
 DEFAULT_EPOCHS = 50
 DEFAULT_ACCUMULATE = 8
@@ -101,13 +104,12 @@ def build_config(args: argparse.Namespace) -> TrainConfig:
 def main() -> int:
     config = build_config(parse_args())
     dataset_meta = load_preprocess_metadata(config.preprocess_root)
-    image_size = int(dataset_meta.get("image_size", config.imgsz))
-    if config.imgsz == DEFAULT_IMAGE_SIZE:
-        config = TrainConfig(**{**config.__dict__, "imgsz": image_size})
 
     validate_dataset_layout(config.preprocess_root)
     validate_label_coverage(config.preprocess_root)
+    quality_report = audit_dataset_quality(config.preprocess_root, dataset_meta)
     data_yaml_path = write_data_yaml(config, dataset_meta)
+    write_quality_report(config, quality_report)
     summarize_dataset(config.preprocess_root, data_yaml_path)
 
     train_kwargs = build_ultralytics_kwargs(config, data_yaml_path)
@@ -151,6 +153,124 @@ def validate_label_coverage(preprocess_root: Path) -> None:
             "No positive segmentation labels found in both train and val splits. "
             "Regenerate manifest/preprocess outputs before training."
         )
+
+
+def audit_dataset_quality(preprocess_root: Path, dataset_meta: dict[str, Any]) -> dict[str, Any]:
+    manifest_path = dataset_meta.get("manifest_path")
+    dataset_root = dataset_meta.get("dataset_root")
+    report: dict[str, Any] = {
+        "preprocess_root": preprocess_root.resolve().as_posix(),
+        "manifest_path": manifest_path,
+        "splits": {},
+        "issues": [],
+    }
+
+    if not manifest_path:
+        report["issues"].append("Missing manifest_path in preprocess metadata.")
+        return report
+
+    manifest_file = Path(manifest_path)
+    if not manifest_file.is_absolute():
+        if dataset_root:
+            manifest_file = Path(dataset_root) / manifest_file
+        else:
+            manifest_file = preprocess_root.parent.parent / manifest_file
+
+    if not manifest_file.exists():
+        report["issues"].append(f"Manifest not found: {manifest_file}")
+        return report
+
+    manifest = load_manifest_records(manifest_file)
+    too_few_defect_classes: list[dict[str, Any]] = []
+
+    for split in ("train", "val", "test"):
+        split_records = [record for record in manifest if record["split"] == split]
+        class_counts: dict[str, dict[str, int]] = {}
+        empty_defect_masks = 0
+        missing_images = 0
+        missing_labels = 0
+        mismatched_masks = 0
+
+        for record in split_records:
+            class_name = record["class_name"]
+            class_counts.setdefault(class_name, {"good": 0, "defect": 0})
+            class_counts[class_name][record["label"]] += 1
+
+            image_path, label_path, mask_path = expected_output_paths(preprocess_root, record)
+            if not image_path.exists():
+                missing_images += 1
+            if not label_path.exists():
+                missing_labels += 1
+            if record["label"] == "defect":
+                if not mask_path.exists():
+                    empty_defect_masks += 1
+                else:
+                    with Image.open(mask_path) as mask_file:
+                        if mask_file.getextrema()[1] == 0:
+                            empty_defect_masks += 1
+
+            if image_path.exists() and mask_path.exists():
+                try:
+                    with Image.open(image_path) as image_file, Image.open(mask_path) as mask_file:
+                        if image_file.size != mask_file.size:
+                            mismatched_masks += 1
+                except Exception:
+                    mismatched_masks += 1
+
+        for class_name, counts in class_counts.items():
+            if counts["defect"] > 0 and counts["defect"] < 5:
+                too_few_defect_classes.append(
+                    {"split": split, "class_name": class_name, "defect_samples": counts["defect"]}
+                )
+
+        report["splits"][split] = {
+            "total_samples": len(split_records),
+            "class_counts": class_counts,
+            "missing_images": missing_images,
+            "missing_labels": missing_labels,
+            "empty_defect_masks": empty_defect_masks,
+            "mismatched_masks": mismatched_masks,
+        }
+
+    report["too_few_defect_classes"] = too_few_defect_classes
+    if too_few_defect_classes:
+        report["issues"].append("Some classes have fewer than 5 defect samples in a split.")
+    return report
+
+
+def load_manifest_records(manifest_file: Path) -> list[dict[str, Any]]:
+    if manifest_file.suffix.lower() == ".json":
+        return json.loads(manifest_file.read_text(encoding="utf-8"))
+
+    if manifest_file.suffix.lower() == ".csv":
+        with manifest_file.open("r", newline="", encoding="utf-8") as handle:
+            reader = csv.DictReader(handle)
+            return [row for row in reader]
+
+    raise SystemExit(f"Unsupported manifest format: {manifest_file.suffix}")
+
+
+def expected_output_paths(preprocess_root: Path, record: dict[str, Any]) -> tuple[Path, Path, Path]:
+    base_name = Path(record["image_path"]).stem
+    class_name = record["class_name"]
+    split = record["split"]
+    image_path = preprocess_root / "images" / split / class_name / f"{base_name}.jpg"
+    label_path = preprocess_root / "labels" / split / class_name / f"{base_name}.txt"
+    mask_path = preprocess_root / "masks" / split / class_name / f"{base_name}.png"
+    return image_path, label_path, mask_path
+
+
+def write_quality_report(config: TrainConfig, report: dict[str, Any]) -> None:
+    report_path = config.project_root / "dataset_quality_report.json"
+    report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"Dataset quality report saved to: {report_path}")
+    for split, summary in report.get("splits", {}).items():
+        print(
+            f"  {split}: total={summary['total_samples']}, empty_defect_masks={summary['empty_defect_masks']}, "
+            f"mismatched_masks={summary['mismatched_masks']}"
+        )
+    if report.get("too_few_defect_classes"):
+        print("  Warning: some class/split combinations have fewer than 5 defect samples.")
 
 
 def write_data_yaml(config: TrainConfig, dataset_meta: dict[str, Any]) -> Path:
@@ -233,20 +353,20 @@ def build_ultralytics_kwargs(config: TrainConfig, data_yaml_path: Path) -> dict[
         "val": config.val,
         "plots": True,
         "save": True,
-        "close_mosaic": 10,
+        "close_mosaic": 0,
         "cos_lr": True,
-        "mosaic": 0.1 if not config.smoke_test else 0.0,
+        "mosaic": 0.0,
         "mixup": 0.0,
         "copy_paste": 0.0,
         "fliplr": 0.5,
-        "flipud": 0.1,
-        "degrees": 5.0,
-        "translate": 0.05,
-        "scale": 0.1,
+        "flipud": 0.0,
+        "degrees": 2.0,
+        "translate": 0.02,
+        "scale": 0.05,
         "shear": 0.0,
-        "hsv_h": 0.015,
-        "hsv_s": 0.4,
-        "hsv_v": 0.2,
+        "hsv_h": 0.01,
+        "hsv_s": 0.2,
+        "hsv_v": 0.15,
         "nbs": max(config.batch * config.accumulate, config.batch),
     }
 

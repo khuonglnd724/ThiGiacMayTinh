@@ -1,7 +1,7 @@
 {
   "dataset_root": "D:/TGMT/ThiGiacMayTinh/AI/preprocess/output",
   "data_yaml_path": "D:/TGMT/ThiGiacMayTinh/AI/train/data.yaml",
-  "image_size": 416,
+  "image_size": 640,
   "normalization": "imagenet",
   "splits": {
     "train": 5306,

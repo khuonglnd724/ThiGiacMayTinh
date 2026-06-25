@@ -13,7 +13,7 @@ from PIL import Image, ImageEnhance, ImageOps
 
 
 IMAGE_EXTENSIONS = {".bmp", ".png", ".jpg", ".jpeg", ".tif", ".tiff"}
-DEFAULT_IMAGE_SIZE = 416
+DEFAULT_IMAGE_SIZE = 640
 IMAGENET_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
 IMAGENET_STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
@@ -43,8 +43,13 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Preprocess MVTec AD into YOLO-ready segmentation data.")
     parser.add_argument("--dataset-root", default="AI/dataset/mvtec-ad", help="Path to the MVTec AD dataset root.")
     parser.add_argument("--manifest", default="AI/dataset/mvtec-ad/manifest/manifest.json", help="Manifest CSV/JSON path.")
-    parser.add_argument("--output-root", default="AI/preprocessing/output", help="Directory for processed data.")
-    parser.add_argument("--image-size", type=int, default=DEFAULT_IMAGE_SIZE, help="Working image size.")
+    parser.add_argument("--output-root", default="AI/preprocess/output", help="Directory for processed data.")
+    parser.add_argument(
+        "--image-size",
+        type=int,
+        default=DEFAULT_IMAGE_SIZE,
+        help="Reference size recorded in metadata; original images are preserved.",
+    )
     parser.add_argument("--seed", type=int, default=42, help="Random seed for augmentation.")
     parser.add_argument("--augment-count", type=int, default=1, help="Augmented copies to generate per train sample.")
     parser.add_argument(
@@ -118,14 +123,29 @@ def prepare_output_dirs(output_root: Path) -> None:
 
 
 def process_records(records: Iterable[ManifestRecord], config: PreprocessConfig, rng: random.Random) -> dict[str, int]:
-    summary = {"processed": 0, "augmented": 0}
+    summary = {
+        "processed": 0,
+        "augmented": 0,
+        "skipped": 0,
+        "skipped_missing_or_empty_defect_mask": 0,
+        "skipped_mask_size_mismatch": 0,
+    }
     for record in records:
         image_path = resolve_source_path(config.dataset_root, record.image_path)
         mask_path = resolve_source_path(config.dataset_root, record.mask_path) if record.mask_path else None
 
         image = load_rgb_image(image_path)
         mask = load_mask_image(mask_path, image.size)
-        image, mask = resize_with_letterbox(image, mask, config.image_size)
+
+        if mask.size != image.size:
+            summary["skipped"] += 1
+            summary["skipped_mask_size_mismatch"] += 1
+            continue
+
+        if record.label == "defect" and not mask_has_foreground(mask):
+            summary["skipped"] += 1
+            summary["skipped_missing_or_empty_defect_mask"] += 1
+            continue
 
         write_sample(record, image, mask, config.output_root, suffix="")
         summary["processed"] += 1
@@ -185,88 +205,33 @@ def load_mask_image(path: Path | None, image_size: tuple[int, int]) -> Image.Ima
     return Image.open(path).convert("L")
 
 
-def resize_with_letterbox(image: Image.Image, mask: Image.Image, target_size: int) -> tuple[Image.Image, Image.Image]:
-    resized_image = letterbox_single(image, target_size, fill=(114, 114, 114), resample=Image.Resampling.BILINEAR)
-    resized_mask = letterbox_single(mask, target_size, fill=0, resample=Image.Resampling.NEAREST)
-    return resized_image, resized_mask
-
-
-def letterbox_single(
-    source: Image.Image,
-    target_size: int,
-    fill: int | tuple[int, int, int],
-    resample: int,
-) -> Image.Image:
-    width, height = source.size
-    scale = min(target_size / width, target_size / height)
-    resized_width = max(1, int(round(width * scale)))
-    resized_height = max(1, int(round(height * scale)))
-    resized = source.resize((resized_width, resized_height), resample)
-
-    canvas = Image.new(source.mode, (target_size, target_size), color=fill)
-    pad_left = (target_size - resized_width) // 2
-    pad_top = (target_size - resized_height) // 2
-    canvas.paste(resized, (pad_left, pad_top))
-    return canvas
-
-
 def augment_pair(image: Image.Image, mask: Image.Image, rng: random.Random) -> tuple[Image.Image, Image.Image]:
     if rng.random() < 0.5:
         image = ImageOps.mirror(image)
         mask = ImageOps.mirror(mask)
 
-    if rng.random() < 0.2:
+    if rng.random() < 0.1:
         image = ImageOps.flip(image)
         mask = ImageOps.flip(mask)
 
-    angle = rng.uniform(-15.0, 15.0)
+    angle = rng.uniform(-5.0, 5.0)
     image = image.rotate(angle, resample=Image.Resampling.BILINEAR, expand=False, fillcolor=(114, 114, 114))
     mask = mask.rotate(angle, resample=Image.Resampling.NEAREST, expand=False, fillcolor=0)
 
     image = apply_intensity_jitter(image, rng)
-    image, mask = apply_random_scale_and_crop(image, mask, rng)
-    image = add_gaussian_noise(image, rng)
     return image, mask
 
 
 def apply_intensity_jitter(image: Image.Image, rng: random.Random) -> Image.Image:
-    brightness = 1.0 + rng.uniform(-0.15, 0.15)
-    contrast = 1.0 + rng.uniform(-0.15, 0.15)
+    brightness = 1.0 + rng.uniform(-0.08, 0.08)
+    contrast = 1.0 + rng.uniform(-0.08, 0.08)
     image = ImageEnhance.Brightness(image).enhance(brightness)
     image = ImageEnhance.Contrast(image).enhance(contrast)
     return image
 
 
-def apply_random_scale_and_crop(
-    image: Image.Image,
-    mask: Image.Image,
-    rng: random.Random,
-) -> tuple[Image.Image, Image.Image]:
-    width, height = image.size
-    scale = rng.uniform(0.9, 1.1)
-    scaled_width = max(1, int(round(width * scale)))
-    scaled_height = max(1, int(round(height * scale)))
-    image = image.resize((scaled_width, scaled_height), Image.Resampling.BILINEAR)
-    mask = mask.resize((scaled_width, scaled_height), Image.Resampling.NEAREST)
-
-    if scaled_width == width and scaled_height == height:
-        return image, mask
-
-    canvas_image = Image.new("RGB", (width, height), color=(114, 114, 114))
-    canvas_mask = Image.new("L", (width, height), color=0)
-    offset_x = max(0, (width - scaled_width) // 2)
-    offset_y = max(0, (height - scaled_height) // 2)
-    canvas_image.paste(image, (offset_x, offset_y))
-    canvas_mask.paste(mask, (offset_x, offset_y))
-    return canvas_image, canvas_mask
-
-
-def add_gaussian_noise(image: Image.Image, rng: random.Random) -> Image.Image:
-    array = np.asarray(image, dtype=np.float32) / 255.0
-    sigma = rng.uniform(0.0, 0.02)
-    noise = np.random.normal(0.0, sigma, array.shape).astype(np.float32)
-    array = np.clip(array + noise, 0.0, 1.0)
-    return Image.fromarray((array * 255.0).astype(np.uint8), mode="RGB")
+def mask_has_foreground(mask: Image.Image) -> bool:
+    return bool(np.asarray(mask.convert("L"), dtype=np.uint8).max())
 
 
 def write_sample(
@@ -346,9 +311,10 @@ def write_runtime_config(config: PreprocessConfig, summary: dict[str, int]) -> N
     meta_dir = config.output_root / "meta"
     meta_dir.mkdir(parents=True, exist_ok=True)
     payload = {
-        "dataset_root": str(config.dataset_root),
-        "manifest_path": str(config.manifest_path),
+        "dataset_root": str(config.dataset_root.resolve()),
+        "manifest_path": str(config.manifest_path.resolve()),
         "image_size": config.image_size,
+        "preserve_original_size": True,
         "seed": config.seed,
         "augment_count": config.augment_count,
         "normalization": config.normalization,

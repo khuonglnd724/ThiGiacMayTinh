@@ -1,0 +1,243 @@
+{
+  "preprocess_root": "D:/TGMT/ThiGiacMayTinh/AI/preprocess/output",
+  "manifest_path": "D:\\TGMT\\ThiGiacMayTinh\\AI\\dataset\\mvtec-ad\\manifest\\manifest.json",
+  "splits": {
+    "train": {
+      "total_samples": 3740,
+      "class_counts": {
+        "bottle": {
+          "good": 157,
+          "defect": 47
+        },
+        "cable": {
+          "good": 200,
+          "defect": 61
+        },
+        "capsule": {
+          "good": 171,
+          "defect": 74
+        },
+        "carpet": {
+          "good": 210,
+          "defect": 67
+        },
+        "grid": {
+          "good": 190,
+          "defect": 49
+        },
+        "hazelnut": {
+          "good": 306,
+          "defect": 44
+        },
+        "leather": {
+          "good": 198,
+          "defect": 60
+        },
+        "metal_nut": {
+          "good": 166,
+          "defect": 68
+        },
+        "pill": {
+          "good": 205,
+          "defect": 98
+        },
+        "screw": {
+          "good": 254,
+          "defect": 82
+        },
+        "tile": {
+          "good": 181,
+          "defect": 61
+        },
+        "toothbrush": {
+          "good": 51,
+          "defect": 20
+        },
+        "transistor": {
+          "good": 193,
+          "defect": 26
+        },
+        "wood": {
+          "good": 184,
+          "defect": 44
+        },
+        "zipper": {
+          "good": 193,
+          "defect": 80
+        }
+      },
+      "missing_images": 0,
+      "missing_labels": 0,
+      "empty_defect_masks": 209,
+      "mismatched_masks": 0
+    },
+    "val": {
+      "total_samples": 1065,
+      "class_counts": {
+        "bottle": {
+          "good": 47,
+          "defect": 11
+        },
+        "cable": {
+          "good": 54,
+          "defect": 20
+        },
+        "capsule": {
+          "good": 50,
+          "defect": 20
+        },
+        "carpet": {
+          "good": 63,
+          "defect": 16
+        },
+        "grid": {
+          "good": 64,
+          "defect": 4
+        },
+        "hazelnut": {
+          "good": 87,
+          "defect": 13
+        },
+        "leather": {
+          "good": 54,
+          "defect": 19
+        },
+        "metal_nut": {
+          "good": 53,
+          "defect": 14
+        },
+        "pill": {
+          "good": 57,
+          "defect": 29
+        },
+        "screw": {
+          "good": 74,
+          "defect": 22
+        },
+        "tile": {
+          "good": 53,
+          "defect": 16
+        },
+        "toothbrush": {
+          "good": 16,
+          "defect": 4
+        },
+        "transistor": {
+          "good": 52,
+          "defect": 10
+        },
+        "wood": {
+          "good": 52,
+          "defect": 13
+        },
+        "zipper": {
+          "good": 53,
+          "defect": 25
+        }
+      },
+      "missing_images": 0,
+      "missing_labels": 0,
+      "empty_defect_masks": 36,
+      "mismatched_masks": 0
+    },
+    "test": {
+      "total_samples": 549,
+      "class_counts": {
+        "bottle": {
+          "good": 25,
+          "defect": 5
+        },
+        "cable": {
+          "good": 28,
+          "defect": 11
+        },
+        "capsule": {
+          "good": 21,
+          "defect": 15
+        },
+        "carpet": {
+          "good": 35,
+          "defect": 6
+        },
+        "grid": {
+          "good": 31,
+          "defect": 4
+        },
+        "hazelnut": {
+          "good": 38,
+          "defect": 13
+        },
+        "leather": {
+          "good": 25,
+          "defect": 13
+        },
+        "metal_nut": {
+          "good": 23,
+          "defect": 11
+        },
+        "pill": {
+          "good": 31,
+          "defect": 14
+        },
+        "screw": {
+          "good": 33,
+          "defect": 15
+        },
+        "tile": {
+          "good": 29,
+          "defect": 7
+        },
+        "toothbrush": {
+          "good": 5,
+          "defect": 6
+        },
+        "transistor": {
+          "good": 28,
+          "defect": 4
+        },
+        "wood": {
+          "good": 30,
+          "defect": 3
+        },
+        "zipper": {
+          "good": 26,
+          "defect": 14
+        }
+      },
+      "missing_images": 0,
+      "missing_labels": 0,
+      "empty_defect_masks": 17,
+      "mismatched_masks": 0
+    }
+  },
+  "issues": [
+    "Some classes have fewer than 5 defect samples in a split."
+  ],
+  "too_few_defect_classes": [
+    {
+      "split": "val",
+      "class_name": "grid",
+      "defect_samples": 4
+    },
+    {
+      "split": "val",
+      "class_name": "toothbrush",
+      "defect_samples": 4
+    },
+    {
+      "split": "test",
+      "class_name": "grid",
+      "defect_samples": 4
+    },
+    {
+      "split": "test",
+      "class_name": "transistor",
+      "defect_samples": 4
+    },
+    {
+      "split": "test",
+      "class_name": "wood",
+      "defect_samples": 3
+    }
+  ]
+}

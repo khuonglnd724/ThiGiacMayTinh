@@ -17,7 +17,7 @@ Notes: Plans follow project rule (Goal/Input/Output/How to do/Lưu ý). Created 
 2026-06-25 - Implemented preprocessing pipeline support:
 - Added AI/preprocessing/preprocess.py for resizing, letterbox padding, augmentation, mask export, and YOLO segmentation label generation.
 - Added AI/preprocessing/__init__.py so the folder can be imported as a reusable package.
-- Fixed manifest path resolution so stored paths like mvtec-ad\\raw\\... resolve correctly under AI/dataset/mvtec-ad.
+- Fixed manifest path resolution so stored paths like mvtec-ad\raw\... resolve correctly under AI/dataset/mvtec-ad.
 
 2026-06-25 - Implemented training pipeline support:
 - Added AI/train/train.py with a YOLO segmentation training CLI, automatic data.yaml generation, small-VRAM defaults, and smoke-test mode.
@@ -29,4 +29,13 @@ Notes: Plans follow project rule (Goal/Input/Output/How to do/Lưu ý). Created 
 - Fixed AI/dataset/download_mvtec.py to follow MVTec structure (train/test image folders + ground_truth masks) and avoid treating ground_truth mask files as input images.
 
 2026-06-25 - Fixed preprocess manifest compatibility:
-- Updated AI/preprocess/preprocess.py path resolution to support workspace-prefixed manifest paths such as AI\\dataset\\mvtec-ad\\raw\\... and still resolve correctly under dataset root.
+- Updated AI/preprocess/preprocess.py path resolution to support workspace-prefixed manifest paths such as AI\dataset\mvtec-ad\raw\... and still resolve correctly under dataset root.
+
+2026-06-25 - Added quality improvement plan:
+- Created docs/plan/AIPlan/07_quality_improvement.md to capture the concrete improvement path for low YOLO-seg quality.
+- Focus areas: preserve more image detail, validate mask alignment, tune augmentation, compare 10/50/100 epoch runs, and evaluate recall/mAP before retraining.
+
+2026-06-25 - Applied quality-improvement code updates:
+- Updated AI/preprocess/preprocess.py to preserve original image resolution, skip defect samples with missing or empty masks, and soften offline augmentation.
+- Updated AI/train/train.py to stop forcing preprocess image_size onto training, use a higher default imgsz, audit dataset quality before training, and reduce aggressive online augmentation.
+- Training now writes dataset_quality_report.json under AI/train for repeatable comparison of split/class coverage and mask integrity.
