@@ -8,3 +8,25 @@
 - 06_inference_integration.md
 
 Notes: Plans follow project rule (Goal/Input/Output/How to do/Lưu ý). Created by GitHub Copilot assistant.
+
+2026-06-24 - Implemented data acquisition support:
+- Added AI/dataset/download_mvtec.py for Kaggle/local dataset intake, manifest generation, and 70/20/10 split.
+- Added requirements.txt entry for kaggle because it was missing from .venv.
+- Verified existing .venv packages already cover numpy, pandas, requests, tqdm, opencv-python, pyyaml, pillow, scikit-image, and scikit-learn.
+
+2026-06-25 - Implemented preprocessing pipeline support:
+- Added AI/preprocessing/preprocess.py for resizing, letterbox padding, augmentation, mask export, and YOLO segmentation label generation.
+- Added AI/preprocessing/__init__.py so the folder can be imported as a reusable package.
+- Fixed manifest path resolution so stored paths like mvtec-ad\\raw\\... resolve correctly under AI/dataset/mvtec-ad.
+
+2026-06-25 - Implemented training pipeline support:
+- Added AI/train/train.py with a YOLO segmentation training CLI, automatic data.yaml generation, small-VRAM defaults, and smoke-test mode.
+- Added AI/train/__init__.py to make the training folder importable as a package.
+
+2026-06-25 - Fixed training and dataset pipeline issues:
+- Updated AI/train/train.py to use Ultralytics-compatible gradient accumulation via nbs instead of invalid accumulate arg.
+- Added early label coverage validation in AI/train/train.py to stop training when train/val segmentation labels are empty.
+- Fixed AI/dataset/download_mvtec.py to follow MVTec structure (train/test image folders + ground_truth masks) and avoid treating ground_truth mask files as input images.
+
+2026-06-25 - Fixed preprocess manifest compatibility:
+- Updated AI/preprocess/preprocess.py path resolution to support workspace-prefixed manifest paths such as AI\\dataset\\mvtec-ad\\raw\\... and still resolve correctly under dataset root.

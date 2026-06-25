@@ -1,1 +1,4 @@
 docs/plan/AIPlan/00_overview.md
+requirements.txt
+AI/dataset/mvtec-ad
+AI/preprocess/output
