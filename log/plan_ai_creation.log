@@ -39,3 +39,14 @@ Notes: Plans follow project rule (Goal/Input/Output/How to do/Lưu ý). Created 
 - Updated AI/preprocess/preprocess.py to preserve original image resolution, skip defect samples with missing or empty masks, and soften offline augmentation.
 - Updated AI/train/train.py to stop forcing preprocess image_size onto training, use a higher default imgsz, audit dataset quality before training, and reduce aggressive online augmentation.
 - Training now writes dataset_quality_report.json under AI/train for repeatable comparison of split/class coverage and mask integrity.
+
+2026-06-26 - Added backend API and video processing plan:
+- Created docs/plan/AIPlan/08_backend_api.md outlining the FastAPI backend structure, video frame extraction pipeline, YOLO integration, and SQLite database storage.
+
+2026-06-26 - Implemented Backend API and Video processing code:
+- Created backend/config.py, database.py, and models.py for folder management and SQLite integration.
+- Created backend/services/yolo_service.py, caption_service.py, and vqa_service.py with Ultralytics, Transformers, and mock fallbacks.
+- Created backend/main.py with FastAPI routes (/detect, /segment, /caption, /vqa, /process_video, /logs).
+- Created backend/requirements.txt and scratch/test_endpoints.py.
+
+

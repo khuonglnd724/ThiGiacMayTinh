@@ -1,0 +1,7 @@
+# Pyrefly configuration for this project
+# Tells Pyrefly to use the .venv environment instead of system Python
+
+python_interpreter = "d:\\beTGMT\\.venv\\Scripts\\python.exe"
+
+[python]
+interpreter = "d:\\beTGMT\\.venv\\Scripts\\python.exe"
