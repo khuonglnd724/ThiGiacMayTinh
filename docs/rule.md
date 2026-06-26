@@ -1,5 +1,5 @@
 ## rule 1: Xuất log
-* Hãy luôn cập nhật log vào `THIGIACMAYTINH\log` khi thêm, xóa, sửa code và docs trong dự án
+* Hãy luôn cập nhật log một cách chi tiết vào `THIGIACMAYTINH\log` những gì thêm, xóa, dòng code được sửa code và docs trong dự án
 ## rule 2: cấu trúc file plan
 * Các file plan được lưu ở `THIGIACMAYTINH\docs\plan`
 * File plan nên có đủ các mục sau:

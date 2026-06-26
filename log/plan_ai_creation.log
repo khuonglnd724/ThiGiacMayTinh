@@ -39,3 +39,40 @@ Notes: Plans follow project rule (Goal/Input/Output/How to do/Lưu ý). Created 
 - Updated AI/preprocess/preprocess.py to preserve original image resolution, skip defect samples with missing or empty masks, and soften offline augmentation.
 - Updated AI/train/train.py to stop forcing preprocess image_size onto training, use a higher default imgsz, audit dataset quality before training, and reduce aggressive online augmentation.
 - Training now writes dataset_quality_report.json under AI/train for repeatable comparison of split/class coverage and mask integrity.
+
+2026-06-26 - Fixed preprocess filename collisions and stale outputs:
+- AI/preprocess/preprocess.py:7 added `shutil` so the script can remove stale output folders before regeneration.
+- AI/preprocess/preprocess.py:94 added `clear_output_dirs(config.output_root)` in `main()` so every preprocess run starts from a clean `images/`, `masks/`, `labels/`, and `meta/` tree.
+- AI/preprocess/preprocess.py:127-131 added `clear_output_dirs(output_root)` to delete old generated files before recreating directories.
+- AI/preprocess/preprocess.py:253 changed `write_sample()` to build names from `make_unique_sample_name(record, suffix)` instead of `Path(record.image_path).stem`.
+- AI/preprocess/preprocess.py:271-274 added `make_unique_sample_name()` to include the anomaly folder name in filenames, preventing collisions between different defect types.
+- AI/train/train.py:199 and AI/train/train.py:253-267 updated dataset-quality path resolution to use the same unique naming scheme when checking generated masks and labels.
+- AI/train/dataset_quality_report.json was regenerated after rerunning preprocess/train smoke-test on the cleaned output.
+- This fix targets false `empty_defect_masks` counts caused by overwritten or stale preprocess outputs.
+
+2026-06-26 - Split MVTec AD categories into distinct YOLO classes:
+- AI/preprocess/preprocess.py:94-98: updated `main()` to load manifest records, dynamically identify categories, and generate a class-to-id mapping.
+- AI/preprocess/preprocess.py:101-102: passed `class_to_id` to `process_records` and `categories` to `write_runtime_config`.
+- AI/preprocess/preprocess.py:133-138: updated `process_records()` signature to accept `class_to_id` dictionary.
+- AI/preprocess/preprocess.py:157: extracted `class_id` from the mapping and passed it to `write_sample()`.
+- AI/preprocess/preprocess.py:164: passed `class_id` to `write_sample()` for augmented samples as well.
+- AI/preprocess/preprocess.py:248: updated `write_sample()` signature to accept `class_id`.
+- AI/preprocess/preprocess.py:263: passed `class_id` down to `mask_to_yolo_segmentation()`.
+- AI/preprocess/preprocess.py:320-334: updated `write_runtime_config()` to accept `categories` and save it inside `preprocess_config.json`.
+- AI/train/train.py:289-301: updated `write_data_yaml()` to extract categories from preprocess metadata and dynamically generate class names and `nc: 15` in `data.yaml`.
+- Regenerated the entire preprocessed dataset with the correct class IDs.
+- Ran a training smoke-test on `yolo11n-seg` using the 15 classes to verify the pipeline.
+
+
+2026-06-26 - Balanced dataset: reduced background ratio and augmented only defect samples:
+- AI/preprocess/preprocess.py:41: added `good_ratio: float = 0.1` field to `PreprocessConfig` dataclass.
+- AI/preprocess/preprocess.py:69-74: added `--good-ratio` CLI option (default 0.1) to control fraction of 'good' samples kept relative to defect count per class.
+- AI/preprocess/preprocess.py:88: mapped `good_ratio` parameter in `build_config`.
+- AI/preprocess/preprocess.py:105: called `balance_good_samples` on parsed manifest records before clearing output directories.
+- AI/preprocess/preprocess.py:147-203: implemented `balance_good_samples` to group records by `(class_name, split)` and downsample `good` samples relative to `defect` samples.
+- AI/preprocess/preprocess.py:230: updated `process_records()` logic to only perform augmentation for `train` split records where `label == 'defect'`, ensuring background samples are not augmented.
+- AI/preprocess/preprocess.py:410: added `good_ratio` to output payload in `write_runtime_config()`.
+- AI/train/train.py:16: updated default batch size from 2 to 4.
+- AI/train/train.py:19: updated default initial learning rate `lr0` from 1e-4 to 1e-3.
+- Reran dataset preprocessing using command: `.venv\Scripts\python AI/preprocess/preprocess.py --good-ratio 0.1 --augment-count 3` resulting in 1375 processed samples (1258 defect + 117 good background) and 2643 defect-only augmented train samples.
+- Verified balanced dataset using a training smoke-test.

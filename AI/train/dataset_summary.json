@@ -4,8 +4,8 @@
   "image_size": 640,
   "normalization": "imagenet",
   "splits": {
-    "train": 5306,
-    "val": 922,
-    "test": 501
+    "train": 1844,
+    "val": 1301,
+    "test": 690
   }
 }
