@@ -2,3 +2,6 @@ docs/plan/AIPlan/00_overview.md
 requirements.txt
 AI/dataset/mvtec-ad
 AI/preprocess/output
+AI/train/train copy.py
+runs/segment/AI/train/runs/ai-segmentation/segmentation-yolo11n-27-6-23h/log
+AI/preprocess/preprocess copy.py

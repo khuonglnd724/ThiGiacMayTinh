@@ -38,7 +38,9 @@ class PreprocessConfig:
     augment_count: int = 3
     normalization: str = "imagenet"
     save_augmented_train_only: bool = True
-    good_ratio: float = 0.1
+    good_ratio: float = 0.5
+    good_ratio_val: float = 0.2
+    good_ratio_test: float = 0.2
 
 
 def parse_args() -> argparse.Namespace:
@@ -53,7 +55,7 @@ def parse_args() -> argparse.Namespace:
         help="Reference size recorded in metadata; original images are preserved.",
     )
     parser.add_argument("--seed", type=int, default=42, help="Random seed for augmentation.")
-    parser.add_argument("--augment-count", type=int, default=1, help="Augmented copies to generate per train sample.")
+    parser.add_argument("--augment-count", type=int, default=3, help="Augmented copies to generate per train sample.")
     parser.add_argument(
         "--normalization",
         choices=["none", "minmax", "imagenet"],
@@ -69,8 +71,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--good-ratio",
         type=float,
-        default=0.1,
-        help="Fraction of 'good' samples to keep per class relative to defect count (0.1 = 10%%). Set to -1 to keep all.",
+        default=0.5,
+        help="Fraction of 'good' samples to keep per class in train split (0.5 = 50%%). Set to -1 to keep all.",
+    )
+    parser.add_argument(
+        "--good-ratio-val",
+        type=float,
+        default=0.2,
+        help="Fraction of 'good' samples in val split (0.2 = 20%%). Set to -1 to keep all.",
+    )
+    parser.add_argument(
+        "--good-ratio-test",
+        type=float,
+        default=0.2,
+        help="Fraction of 'good' samples in test split (0.2 = 20%%). Set to -1 to keep all.",
     )
     return parser.parse_args()
 
@@ -86,6 +100,8 @@ def build_config(args: argparse.Namespace) -> PreprocessConfig:
         normalization=args.normalization,
         save_augmented_train_only=args.augment_train_only,
         good_ratio=args.good_ratio,
+        good_ratio_val=args.good_ratio_val,
+        good_ratio_test=args.good_ratio_test,
     )
 
 
@@ -102,7 +118,7 @@ def main() -> int:
     categories = sorted(list({r.class_name for r in records}))
     class_to_id = {cat: idx for idx, cat in enumerate(categories)}
 
-    records = balance_good_samples(records, config.good_ratio, rng)
+    records = balance_good_samples(records, config.good_ratio, config.good_ratio_val, config.good_ratio_test, rng)
 
     clear_output_dirs(config.output_root)
     prepare_output_dirs(config.output_root)
@@ -147,17 +163,16 @@ def clear_output_dirs(output_root: Path) -> None:
 def balance_good_samples(
     records: list[ManifestRecord],
     good_ratio: float,
+    good_ratio_val: float,
+    good_ratio_test: float,
     rng: random.Random,
 ) -> list[ManifestRecord]:
     """Downsample 'good' samples so they don't overwhelm defect samples.
 
     For each (class_name, split) group, keep at most
-    ``max(1, int(defect_count * good_ratio))`` good samples.
-    Setting ``good_ratio`` to -1 disables filtering and keeps all samples.
+    ``max(1, int(defect_count * ratio))`` good samples, where ratio depends on split.
+    Setting a ratio to -1 disables filtering for that split.
     """
-    if good_ratio < 0:
-        return records
-
     from collections import defaultdict
 
     # Group records by (class_name, split)
@@ -180,14 +195,23 @@ def balance_good_samples(
         if not good_records:
             continue
 
-        if split != "train":
-            balanced.extend(good_records)
-            total_good_after += len(good_records)
-            total_good_before += len(good_records)
-            continue
+        # Choose ratio based on split
+        if split == "train":
+            ratio = good_ratio
+        elif split == "val":
+            ratio = good_ratio_val
+        else:
+            ratio = good_ratio_test
 
         total_good_before += len(good_records)
-        max_good = max(1, int(len(defect_records) * good_ratio))
+
+        # ratio < 0 → keep all good samples
+        if ratio < 0:
+            balanced.extend(good_records)
+            total_good_after += len(good_records)
+            continue
+
+        max_good = max(1, int(len(defect_records) * ratio))
         if len(good_records) <= max_good:
             balanced.extend(good_records)
             total_good_after += len(good_records)
@@ -198,7 +222,7 @@ def balance_good_samples(
 
     print(
         f"Balance: kept {total_good_after}/{total_good_before} good samples "
-        f"(good_ratio={good_ratio} in train split)"
+        f"(train={good_ratio}, val={good_ratio_val}, test={good_ratio_test})"
     )
     return balanced
 
@@ -331,20 +355,23 @@ def write_sample(
 ) -> None:
     base_name = make_unique_sample_name(record, suffix)
     image_dir = output_root / "images" / record.split / record.class_name
-    mask_dir = output_root / "masks" / record.split / record.class_name
-    label_dir = output_root / "labels" / record.split / record.class_name
     image_dir.mkdir(parents=True, exist_ok=True)
-    mask_dir.mkdir(parents=True, exist_ok=True)
-    label_dir.mkdir(parents=True, exist_ok=True)
-
     image_path = image_dir / f"{base_name}.jpg"
-    mask_path = mask_dir / f"{base_name}.png"
-    label_path = label_dir / f"{base_name}.txt"
-
     image.save(image_path, quality=95)
-    mask_binary = mask.convert("L").point(lambda value: 255 if value > 0 else 0)
-    mask_binary.save(mask_path)
-    label_path.write_text(mask_to_yolo_segmentation(mask_binary, class_id=class_id), encoding="utf-8")
+
+    # Only create mask + label if mask has actual foreground (defect samples)
+    if mask_has_foreground(mask):
+        mask_dir = output_root / "masks" / record.split / record.class_name
+        label_dir = output_root / "labels" / record.split / record.class_name
+        mask_dir.mkdir(parents=True, exist_ok=True)
+        label_dir.mkdir(parents=True, exist_ok=True)
+
+        mask_path = mask_dir / f"{base_name}.png"
+        label_path = label_dir / f"{base_name}.txt"
+
+        mask_binary = mask.convert("L").point(lambda value: 255 if value > 0 else 0)
+        mask_binary.save(mask_path)
+        label_path.write_text(mask_to_yolo_segmentation(mask_binary, class_id=class_id), encoding="utf-8")
 
 
 def make_unique_sample_name(record: ManifestRecord, suffix: str) -> str:
@@ -416,6 +443,8 @@ def write_runtime_config(config: PreprocessConfig, summary: dict[str, int], cate
         "normalization": config.normalization,
         "save_augmented_train_only": config.save_augmented_train_only,
         "good_ratio": config.good_ratio,
+        "good_ratio_val": config.good_ratio_val,
+        "good_ratio_test": config.good_ratio_test,
         "categories": categories,
         "summary": summary,
         "normalization_stats": {

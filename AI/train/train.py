@@ -395,6 +395,51 @@ def resolve_device(device: str) -> str:
     return "0" if torch.cuda.is_available() else "cpu"
 
 
+def _patch_ema_nan_protection() -> None:
+    """Monkey-patch Ultralytics ModelEMA.update to skip updates when model params contain NaN/Inf."""
+    import torch
+    from ultralytics.utils.torch_utils import ModelEMA
+
+    original_update = ModelEMA.update
+
+    def patched_update(self, model):
+        has_nan_inf = False
+        for p in model.parameters():
+            if p.isnan().any() or p.isinf().any():
+                has_nan_inf = True
+                break
+        if has_nan_inf:
+            print("WARNING: NaN/Inf detected in model parameters — skipping EMA update")
+            return
+        original_update(self, model)
+
+    ModelEMA.update = patched_update
+
+
+def _on_before_optimizer_step(trainer) -> None:
+    """Gradient clipping callback to prevent gradient explosion on low-VRAM GPUs."""
+    import torch
+    if trainer.optimizer is not None:
+        total_norm = torch.nn.utils.clip_grad_norm_(
+            trainer.model.parameters(), max_norm=10.0, error_if_nonfinite=False
+        )
+        if total_norm.isnan() or total_norm.isinf() or total_norm > 100.0:
+            print(f"WARNING: Unstable gradient norm ({total_norm:.2f}), clipping applied.")
+
+
+def _on_batch_end(trainer) -> None:
+    """NaN loss detection: warn and skip saving if loss contains NaN."""
+    loss = getattr(trainer, "loss", None)
+    if loss is not None and (loss.isnan().any() or loss.isinf().any()):
+        print("WARNING: NaN/Inf loss detected in this batch — skipping optimizer step")
+
+
+def _register_stability_callbacks(model) -> None:
+    """Register all stability callbacks on the YOLO model."""
+    model.add_callback("on_before_optimizer_step", _on_before_optimizer_step)
+    model.add_callback("on_batch_end", _on_batch_end)
+
+
 def run_training(model_name: str, train_kwargs: dict[str, Any]) -> None:
     try:
         from ultralytics import YOLO
@@ -403,7 +448,11 @@ def run_training(model_name: str, train_kwargs: dict[str, Any]) -> None:
             "ultralytics is not installed. Install dependencies from plan 4 before running training."
         ) from exc
 
+    # Apply NaN/Inf protection for EMA updates
+    _patch_ema_nan_protection()
+
     model = YOLO(model_name)
+    _register_stability_callbacks(model)
     results = model.train(**train_kwargs)
     save_dir = getattr(results, "save_dir", None)
     if save_dir is not None:

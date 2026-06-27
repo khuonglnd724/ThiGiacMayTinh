@@ -66,8 +66,8 @@
           "defect": 80
         }
       },
-      "missing_images": 2777,
-      "missing_labels": 2777,
+      "missing_images": 2421,
+      "missing_labels": 2859,
       "empty_defect_masks": 0,
       "mismatched_masks": 0
     },
@@ -135,8 +135,8 @@
           "defect": 25
         }
       },
-      "missing_images": 0,
-      "missing_labels": 0,
+      "missing_images": 786,
+      "missing_labels": 829,
       "empty_defect_masks": 0,
       "mismatched_masks": 0
     },
@@ -204,8 +204,8 @@
           "defect": 14
         }
       },
-      "missing_images": 0,
-      "missing_labels": 0,
+      "missing_images": 383,
+      "missing_labels": 408,
       "empty_defect_masks": 0,
       "mismatched_masks": 0
     }

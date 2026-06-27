@@ -76,3 +76,24 @@ Notes: Plans follow project rule (Goal/Input/Output/How to do/Lưu ý). Created 
 - AI/train/train.py:19: updated default initial learning rate `lr0` from 1e-4 to 1e-3.
 - Reran dataset preprocessing using command: `.venv\Scripts\python AI/preprocess/preprocess.py --good-ratio 0.1 --augment-count 3` resulting in 1375 processed samples (1258 defect + 117 good background) and 2643 defect-only augmented train samples.
 - Verified balanced dataset using a training smoke-test.
+
+2026-06-27 - Mở rộng balance_good_samples() cho cả val/test, cập nhật good_ratio mặc định:
+- AI/preprocess/preprocess.py:41: good_ratio default 0.3 → 0.5.
+- AI/preprocess/preprocess.py:42-43: thêm good_ratio_val=0.2, good_ratio_test=0.2.
+- AI/preprocess/preprocess.py:72-75: --good-ratio default 0.3→0.5, help text sửa.
+- AI/preprocess/preprocess.py:77-87: thêm --good-ratio-val (default 0.2) và --good-ratio-test (default 0.2).
+- AI/preprocess/preprocess.py:102-104: build_config map good_ratio_val, good_ratio_test.
+- AI/preprocess/preprocess.py:121: main() gọi balance_good_samples với 4 tham số.
+- AI/preprocess/preprocess.py:163-227: balance_good_samples sửa signature (thêm good_ratio_val, good_ratio_test),
+  bỏ bypass split!="train", dùng ratio theo split, in đủ 3 ratio.
+- AI/preprocess/preprocess.py:445-447: write_runtime_config lưu good_ratio_val, good_ratio_test.
+
+2026-06-27 - Sửa preprocess.py: good samples chỉ copy ảnh, ko tạo label + mask rỗng:
+- AI/preprocess/preprocess.py:41: good_ratio default 0.8 → 0.3 (PreprocessConfig).
+- AI/preprocess/preprocess.py:72: good_ratio CLI default 0.1 → 0.3.
+- AI/preprocess/preprocess.py:73: help text cập nhật 0.1=10% → 0.3=30%.
+- AI/preprocess/preprocess.py:324-350: write_sample() sửa logic:
+  * Chỉ tạo image_dir, copy image (cho mọi sample).
+  * Bỏ tạo mask_dir + label_dir không điều kiện.
+  * Chỉ tạo mask + label file khi mask_has_foreground(mask) == True (defect samples).
+  * Good samples (mask toàn đen) chỉ có ảnh, ko label, ko mask.
