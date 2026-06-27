@@ -1,0 +1,99 @@
+======================================================================
+LOG: Feature Extraction Module & Inspection Pipeline Update
+======================================================================
+Date: 2026-06-27
+
+----------------------------------------------------------------------
+1. NEW FILE: backend/services/feature_extraction.py
+----------------------------------------------------------------------
+- Created FeatureExtractor class with 5 extraction capabilities:
+  a) Defect type classification: Maps YOLO class_name to specific defect
+     types (scratch, crack, dent, hole, etc.) based on product class
+     and polygon aspect ratio (elongated -> scratch/crack, compact -> dent/hole)
+  b) Area calculation: Uses Shoelace formula on polygon coordinates,
+     returns pixel area, normalized area, and percentage of image coverage
+  c) Position analysis: Divides image into 9 zones (3x3 grid),
+     computes centroid of mask/bbox, classifies zone with human-readable description
+  d) Size classification: 6 levels (micro, tiny, small, medium, large, critical)
+     based on percentage of image area
+  e) Severity scoring: 0-100 score combining:
+     - Area contribution (0-40): exponential curve favoring larger areas
+     - Position contribution (0-30): center zones weighted higher
+     - Confidence contribution (0-30): higher conf = higher score
+     Result: Low (<25), Medium (25-50), High (50-75), Critical (>75)
+     with actionable recommendations per level
+
+- PRODUCT_DEFECT_MAP: 16 product classes with their possible defect types
+  (based on MVTec AD common defects)
+
+- POSITION_ZONES: 9-zone grid for spatial defect localization
+
+----------------------------------------------------------------------
+2. NEW FILE: backend/services/inspection_report.py
+----------------------------------------------------------------------
+- Created InspectionReportService class that generates structured inspection reports
+- generate_report() produces:
+  - inspection_summary: filename, image_size, total_defects, defect_type_breakdown,
+    severity_breakdown
+  - position_analysis: defect_zones heatmap, most_affected_zone
+  - verdict: PASS/FLAG/REJECT with reason
+  - recommendations: actionable QC steps based on verdict
+  - defect_details: full enriched predictions array
+- generate_text_summary(): human-readable text version for VQA context
+- Rule-based logic for verdict:
+  - Any High/Critical -> REJECT
+  - No defects -> PASS
+  - >2 Medium -> REJECT
+  - 1-2 Medium -> FLAG (secondary inspection)
+  - All Low -> PASS
+
+----------------------------------------------------------------------
+3. MODIFIED: backend/services/vqa_service.py
+----------------------------------------------------------------------
+- Added inspection_context parameter to answer_question()
+- Added _answer_with_context(): context-aware answering using enriched
+  predictions and inspection report. Supports questions about:
+  - Defect existence, count, types
+  - Severity levels
+  - Position/location
+  - Verdict (pass/fail)
+  - Recommendations
+  - Full report summary
+- Falls back to Transformers VQA pipeline, then legacy keyword matching
+- Legacy _keyword_fallback() preserved for backward compatibility
+
+----------------------------------------------------------------------
+4. MODIFIED: backend/main.py
+----------------------------------------------------------------------
+- Added imports: FeatureExtractor, InspectionReportService
+- Added new endpoint POST /inspect:
+  Full inspection pipeline following the target flow:
+  a) Upload image -> YOLO segmentation (best.pt)
+  b) Feature Extraction -> enriched predictions
+  c) Save annotated result image
+  d) Generate Inspection Report (rule-based verdict)
+  e) Pre-compute VQA quick answers for common questions
+  f) Return Final Response with all data
+
+  Response includes:
+  - enriched predictions with defect_type, area, position, size, severity
+  - full inspection report with verdict & recommendations
+  - VQA quick answers (defect, severity, verdict, position, count)
+
+----------------------------------------------------------------------
+5. MODIFIED: backend/services/__init__.py
+----------------------------------------------------------------------
+- Added exports for FeatureExtractor and InspectionReportService
+- Added __all__ list for clean imports
+
+======================================================================
+CURRENT FLOW STATUS (updated):
+======================================================================
+Image -> YOLO11-seg (best.pt) -> Detection + Segmentation  [✅ DONE]
+  -> Feature Extraction Module                              [✅ NEW]
+     - Defect type, Area, Position, Size, Confidence, Severity
+  -> JSON Inspection                                        [✅ ENRICHED]
+  -> Inspection Report (Rule-based)                         [✅ NEW]
+  -> VQA Engine (Rule-based + context-aware)                [✅ UPGRADED]
+  -> Final Response                                         [✅ NEW /inspect endpoint]
+======================================================================

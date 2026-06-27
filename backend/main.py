@@ -15,6 +15,8 @@ from backend.models import InspectionLog
 from backend.services.yolo_service import YOLOService
 from backend.services.caption_service import CaptionService
 from backend.services.vqa_service import VQAService
+from backend.services.feature_extraction import FeatureExtractor
+from backend.services.inspection_report import InspectionReportService
 
 # Lifespan context manager for startup/shutdown events
 @asynccontextmanager
@@ -307,3 +309,89 @@ async def get_logs(limit: int = 100, skip: int = 0, db: Session = Depends(get_db
             for log in logs
         ]
     }
+
+@app.post("/inspect")
+async def inspect(file: UploadFile = File(...), conf: float = 0.25):
+    """
+    Full inspection pipeline:
+      1. YOLO segmentation
+      2. Feature Extraction (defect type, area, position, size, severity)
+      3. Inspection Report (rule-based verdict & recommendations)
+      4. VQA context integration
+
+    Follows the flow:
+      Image -> YOLO11-seg -> Detection+Segmentation
+      -> Feature Extraction -> JSON Inspection
+      -> Inspection Report + VQA Engine -> Final Response
+    """
+    # Save uploaded file
+    file_ext = os.path.splitext(file.filename)[1]
+    temp_filename = f"{uuid.uuid4()}{file_ext}"
+    temp_path = UPLOAD_DIR / temp_filename
+
+    with temp_path.open("wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    try:
+        # Load image
+        img = Image.open(temp_path).convert("RGB")
+        img_width, img_height = img.size
+
+        # Step 1: YOLO segmentation
+        yolo_service: YOLOService = app.state.yolo
+        predictions, annotated_bgr = yolo_service.predict(img, conf=conf, task="segment")
+
+        # Step 2: Feature Extraction
+        extractor = FeatureExtractor()
+        enriched_predictions = extractor.extract(predictions, img_width, img_height)
+
+        # Save annotated image
+        result_url = None
+        if annotated_bgr is not None:
+            result_filename = f"inspect_{temp_filename}"
+            result_path = RESULTS_DIR / result_filename
+            cv2.imwrite(str(result_path), annotated_bgr)
+            result_url = f"/static/results/{result_filename}"
+
+        # Step 3: Inspection Report
+        reporter = InspectionReportService()
+        report = reporter.generate_report(
+            enriched_predictions,
+            filename=file.filename,
+            image_size=(img_width, img_height)
+        )
+
+        # Step 4: VQA context (pre-built answers for common questions)
+        vqa_service: VQAService = app.state.vqa
+        vqa_context = {
+            "enriched_predictions": enriched_predictions,
+            "report": report,
+        }
+        # Pre-answer common questions for quick access
+        common_questions = {
+            "defect": vqa_service.answer_question(img, "Is there any defect?", vqa_context),
+            "severity": vqa_service.answer_question(img, "What is the severity?", vqa_context),
+            "verdict": vqa_service.answer_question(img, "What is the verdict?", vqa_context),
+            "position": vqa_service.answer_question(img, "Where is the defect?", vqa_context),
+            "count": vqa_service.answer_question(img, "How many defects?", vqa_context),
+        }
+
+        # Final Response: enriched predictions + report + VQA
+        return {
+            "status": "success",
+            "filename": file.filename,
+            "image_size": f"{img_width}x{img_height}",
+            "total_defects": len(enriched_predictions),
+            "predictions": enriched_predictions,
+            "result_image_url": result_url,
+            "report": report,
+            "vqa_quick_answers": common_questions,
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Inspection failed: {str(e)}")
+    finally:
+        # Cleanup temp file
+        if temp_path.exists():
+            os.remove(temp_path)
+
