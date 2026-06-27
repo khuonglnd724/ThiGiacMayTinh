@@ -13,11 +13,11 @@ from PIL import Image
 DEFAULT_PROJECT_NAME = "ai-segmentation"
 DEFAULT_MODEL = "yolo11n-seg.pt"
 DEFAULT_IMAGE_SIZE = 640
-DEFAULT_BATCH_SIZE = 2
+DEFAULT_BATCH_SIZE = 4
 DEFAULT_EPOCHS = 50
 DEFAULT_ACCUMULATE = 8
 DEFAULT_WORKERS = 4
-DEFAULT_LR0 = 1e-4
+DEFAULT_LR0 = 1e-3
 DEFAULT_WEIGHT_DECAY = 1e-2
 
 
@@ -251,13 +251,22 @@ def load_manifest_records(manifest_file: Path) -> list[dict[str, Any]]:
 
 
 def expected_output_paths(preprocess_root: Path, record: dict[str, Any]) -> tuple[Path, Path, Path]:
-    base_name = Path(record["image_path"]).stem
+    base_name = make_unique_sample_name(record)
     class_name = record["class_name"]
     split = record["split"]
     image_path = preprocess_root / "images" / split / class_name / f"{base_name}.jpg"
     label_path = preprocess_root / "labels" / split / class_name / f"{base_name}.txt"
     mask_path = preprocess_root / "masks" / split / class_name / f"{base_name}.png"
     return image_path, label_path, mask_path
+
+
+def make_unique_sample_name(record: dict[str, Any]) -> str:
+    path = Path(record["image_path"])
+    source_stem = path.stem
+    anomaly_type = path.parent.name
+    orig_split = path.parent.parent.name
+    suffix = ""
+    return f"{orig_split}_{anomaly_type}__{source_stem}{suffix}"
 
 
 def write_quality_report(config: TrainConfig, report: dict[str, Any]) -> None:
@@ -279,18 +288,21 @@ def write_data_yaml(config: TrainConfig, dataset_meta: dict[str, Any]) -> Path:
     data_yaml_path.parent.mkdir(parents=True, exist_ok=True)
 
     dataset_root = config.preprocess_root.resolve().as_posix()
-    yaml_text = "\n".join(
-        [
-            f"path: {dataset_root}",
-            "train: images/train",
-            "val: images/val",
-            "test: images/test",
-            "nc: 1",
-            "names:",
-            "  0: defect",
-            "",
-        ]
-    )
+    categories = dataset_meta.get("categories", ["defect"])
+    
+    yaml_lines = [
+        f"path: {dataset_root}",
+        "train: images/train",
+        "val: images/val",
+        "test: images/test",
+        f"nc: {len(categories)}",
+        "names:",
+    ]
+    for idx, cat_name in enumerate(categories):
+        yaml_lines.append(f"  {idx}: {cat_name}")
+    yaml_lines.append("")
+    
+    yaml_text = "\n".join(yaml_lines)
     data_yaml_path.write_text(yaml_text, encoding="utf-8")
 
     info_path = config.project_root / "dataset_summary.json"

@@ -4,6 +4,7 @@ import argparse
 import csv
 import json
 import random
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -34,9 +35,10 @@ class PreprocessConfig:
     output_root: Path
     image_size: int = DEFAULT_IMAGE_SIZE
     seed: int = 42
-    augment_count: int = 1
+    augment_count: int = 3
     normalization: str = "imagenet"
     save_augmented_train_only: bool = True
+    good_ratio: float = 0.1
 
 
 def parse_args() -> argparse.Namespace:
@@ -64,6 +66,12 @@ def parse_args() -> argparse.Namespace:
         default=True,
         help="Write augmented samples only for train split.",
     )
+    parser.add_argument(
+        "--good-ratio",
+        type=float,
+        default=0.1,
+        help="Fraction of 'good' samples to keep per class relative to defect count (0.1 = 10%%). Set to -1 to keep all.",
+    )
     return parser.parse_args()
 
 
@@ -77,6 +85,7 @@ def build_config(args: argparse.Namespace) -> PreprocessConfig:
         augment_count=max(0, args.augment_count),
         normalization=args.normalization,
         save_augmented_train_only=args.augment_train_only,
+        good_ratio=args.good_ratio,
     )
 
 
@@ -90,9 +99,15 @@ def main() -> int:
         print(f"No manifest records found in {config.manifest_path}")
         return 1
 
+    categories = sorted(list({r.class_name for r in records}))
+    class_to_id = {cat: idx for idx, cat in enumerate(categories)}
+
+    records = balance_good_samples(records, config.good_ratio, rng)
+
+    clear_output_dirs(config.output_root)
     prepare_output_dirs(config.output_root)
-    summary = process_records(records, config, rng)
-    write_runtime_config(config, summary)
+    summary = process_records(records, config, rng, class_to_id)
+    write_runtime_config(config, summary, categories)
     print(
         "Processed "
         f"{summary['processed']} samples "
@@ -122,7 +137,78 @@ def prepare_output_dirs(output_root: Path) -> None:
         (output_root / folder).mkdir(parents=True, exist_ok=True)
 
 
-def process_records(records: Iterable[ManifestRecord], config: PreprocessConfig, rng: random.Random) -> dict[str, int]:
+def clear_output_dirs(output_root: Path) -> None:
+    for folder in ["images", "masks", "labels", "meta"]:
+        folder_path = output_root / folder
+        if folder_path.exists():
+            shutil.rmtree(folder_path)
+
+
+def balance_good_samples(
+    records: list[ManifestRecord],
+    good_ratio: float,
+    rng: random.Random,
+) -> list[ManifestRecord]:
+    """Downsample 'good' samples so they don't overwhelm defect samples.
+
+    For each (class_name, split) group, keep at most
+    ``max(1, int(defect_count * good_ratio))`` good samples.
+    Setting ``good_ratio`` to -1 disables filtering and keeps all samples.
+    """
+    if good_ratio < 0:
+        return records
+
+    from collections import defaultdict
+
+    # Group records by (class_name, split)
+    groups: dict[tuple[str, str], dict[str, list[ManifestRecord]]] = defaultdict(
+        lambda: {"good": [], "defect": []}
+    )
+    for r in records:
+        groups[(r.class_name, r.split)][r.label].append(r)
+
+    balanced: list[ManifestRecord] = []
+    total_good_before = 0
+    total_good_after = 0
+
+    for (class_name, split), labels in sorted(groups.items()):
+        defect_records = labels["defect"]
+        good_records = labels["good"]
+
+        balanced.extend(defect_records)
+
+        if not good_records:
+            continue
+
+        if split != "train":
+            balanced.extend(good_records)
+            total_good_after += len(good_records)
+            total_good_before += len(good_records)
+            continue
+
+        total_good_before += len(good_records)
+        max_good = max(1, int(len(defect_records) * good_ratio))
+        if len(good_records) <= max_good:
+            balanced.extend(good_records)
+            total_good_after += len(good_records)
+        else:
+            sampled = rng.sample(good_records, max_good)
+            balanced.extend(sampled)
+            total_good_after += max_good
+
+    print(
+        f"Balance: kept {total_good_after}/{total_good_before} good samples "
+        f"(good_ratio={good_ratio} in train split)"
+    )
+    return balanced
+
+
+def process_records(
+    records: Iterable[ManifestRecord],
+    config: PreprocessConfig,
+    rng: random.Random,
+    class_to_id: dict[str, int],
+) -> dict[str, int]:
     summary = {
         "processed": 0,
         "augmented": 0,
@@ -147,14 +233,15 @@ def process_records(records: Iterable[ManifestRecord], config: PreprocessConfig,
             summary["skipped_missing_or_empty_defect_mask"] += 1
             continue
 
-        write_sample(record, image, mask, config.output_root, suffix="")
+        class_id = class_to_id[record.class_name]
+        write_sample(record, image, mask, config.output_root, suffix="", class_id=class_id)
         summary["processed"] += 1
 
-        if record.split == "train" and config.augment_count > 0:
+        if record.label == "defect" and config.augment_count > 0:
             for index in range(config.augment_count):
                 aug_image, aug_mask = augment_pair(image, mask, rng)
                 suffix = f"_aug{index + 1:02d}"
-                write_sample(record, aug_image, aug_mask, config.output_root, suffix=suffix)
+                write_sample(record, aug_image, aug_mask, config.output_root, suffix=suffix, class_id=class_id)
                 summary["augmented"] += 1
 
     return summary
@@ -240,8 +327,9 @@ def write_sample(
     mask: Image.Image,
     output_root: Path,
     suffix: str,
+    class_id: int,
 ) -> None:
-    base_name = Path(record.image_path).stem + suffix
+    base_name = make_unique_sample_name(record, suffix)
     image_dir = output_root / "images" / record.split / record.class_name
     mask_dir = output_root / "masks" / record.split / record.class_name
     label_dir = output_root / "labels" / record.split / record.class_name
@@ -256,7 +344,15 @@ def write_sample(
     image.save(image_path, quality=95)
     mask_binary = mask.convert("L").point(lambda value: 255 if value > 0 else 0)
     mask_binary.save(mask_path)
-    label_path.write_text(mask_to_yolo_segmentation(mask_binary), encoding="utf-8")
+    label_path.write_text(mask_to_yolo_segmentation(mask_binary, class_id=class_id), encoding="utf-8")
+
+
+def make_unique_sample_name(record: ManifestRecord, suffix: str) -> str:
+    path = Path(record.image_path)
+    source_stem = path.stem
+    anomaly_type = path.parent.name
+    orig_split = path.parent.parent.name
+    return f"{orig_split}_{anomaly_type}__{source_stem}{suffix}"
 
 
 def mask_to_yolo_segmentation(mask: Image.Image, class_id: int = 0) -> str:
@@ -307,7 +403,7 @@ def normalize_contour(contour: np.ndarray, width: int, height: int) -> list[floa
     return points
 
 
-def write_runtime_config(config: PreprocessConfig, summary: dict[str, int]) -> None:
+def write_runtime_config(config: PreprocessConfig, summary: dict[str, int], categories: list[str]) -> None:
     meta_dir = config.output_root / "meta"
     meta_dir.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -319,6 +415,8 @@ def write_runtime_config(config: PreprocessConfig, summary: dict[str, int]) -> N
         "augment_count": config.augment_count,
         "normalization": config.normalization,
         "save_augmented_train_only": config.save_augmented_train_only,
+        "good_ratio": config.good_ratio,
+        "categories": categories,
         "summary": summary,
         "normalization_stats": {
             "mode": config.normalization,

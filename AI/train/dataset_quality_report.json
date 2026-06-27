@@ -66,9 +66,9 @@
           "defect": 80
         }
       },
-      "missing_images": 0,
-      "missing_labels": 0,
-      "empty_defect_masks": 209,
+      "missing_images": 2777,
+      "missing_labels": 2777,
+      "empty_defect_masks": 0,
       "mismatched_masks": 0
     },
     "val": {
@@ -137,7 +137,7 @@
       },
       "missing_images": 0,
       "missing_labels": 0,
-      "empty_defect_masks": 36,
+      "empty_defect_masks": 0,
       "mismatched_masks": 0
     },
     "test": {
@@ -206,7 +206,7 @@
       },
       "missing_images": 0,
       "missing_labels": 0,
-      "empty_defect_masks": 17,
+      "empty_defect_masks": 0,
       "mismatched_masks": 0
     }
   },
