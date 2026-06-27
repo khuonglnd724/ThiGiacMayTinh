@@ -40,6 +40,7 @@ Notes: Plans follow project rule (Goal/Input/Output/How to do/Lưu ý). Created 
 - Updated AI/train/train.py to stop forcing preprocess image_size onto training, use a higher default imgsz, audit dataset quality before training, and reduce aggressive online augmentation.
 - Training now writes dataset_quality_report.json under AI/train for repeatable comparison of split/class coverage and mask integrity.
 
+
 2026-06-26 - Fixed preprocess filename collisions and stale outputs:
 - AI/preprocess/preprocess.py:7 added `shutil` so the script can remove stale output folders before regeneration.
 - AI/preprocess/preprocess.py:94 added `clear_output_dirs(config.output_root)` in `main()` so every preprocess run starts from a clean `images/`, `masks/`, `labels/`, and `meta/` tree.
@@ -76,3 +77,13 @@ Notes: Plans follow project rule (Goal/Input/Output/How to do/Lưu ý). Created 
 - AI/train/train.py:19: updated default initial learning rate `lr0` from 1e-4 to 1e-3.
 - Reran dataset preprocessing using command: `.venv\Scripts\python AI/preprocess/preprocess.py --good-ratio 0.1 --augment-count 3` resulting in 1375 processed samples (1258 defect + 117 good background) and 2643 defect-only augmented train samples.
 - Verified balanced dataset using a training smoke-test.
+
+2026-06-26 - Added backend API and video processing plan:
+- Created docs/plan/AIPlan/08_backend_api.md outlining the FastAPI backend structure, video frame extraction pipeline, YOLO integration, and SQLite database storage.
+
+2026-06-26 - Implemented Backend API and Video processing code:
+- Created backend/config.py, database.py, and models.py for folder management and SQLite integration.
+- Created backend/services/yolo_service.py, caption_service.py, and vqa_service.py with Ultralytics, Transformers, and mock fallbacks.
+- Created backend/main.py with FastAPI routes (/detect, /segment, /caption, /vqa, /process_video, /logs).
+- Created backend/requirements.txt and scratch/test_endpoints.py.
+
