@@ -17,7 +17,7 @@ DATABASE_URL = f"sqlite:///{DATABASE_PATH.as_posix()}"
 
 # AI Models Paths
 WORKSPACE_ROOT = BASE_DIR.parent
-YOLO_MODEL_PATH = WORKSPACE_ROOT / "runs" / "segment" / "AI" / "train" / "runs" / "ai-segmentation" / "segmentation-yolo11n-26-6-6h" / "weights" / "best.pt"
+YOLO_MODEL_PATH = WORKSPACE_ROOT / "runs" / "segment" / "AI" / "train" / "runs" / "ai-segmentation" / "segmentation-yolo11n-27-6-23h" / "weights" / "best.pt"
 FALLBACK_YOLO_PATH = WORKSPACE_ROOT / "yolo11n-seg.pt"
 
 def get_yolo_path() -> str:

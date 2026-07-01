@@ -3,5 +3,7 @@ requirements.txt
 AI/dataset/mvtec-ad
 AI/preprocess/output
 AI/train/train copy.py
-runs/segment/AI/train/runs/ai-segmentation/segmentation-yolo11n-27-6-23h/log
 AI/preprocess/preprocess copy.py
+runs/segment/AI/train/runs/ai-segmentation/segmentation-yolo11n-27-6-23h/log.txt
+docs/plan/plan_preprocess_train_pipeline.md
+docs/plan/plan_cai_tien_ket_qua_train.md
