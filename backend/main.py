@@ -9,14 +9,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
-from backend.config import UPLOAD_DIR, STATIC_DIR, RESULTS_DIR
-from backend.database import engine, get_db, Base
-from backend.models import InspectionLog
-from backend.services.yolo_service import YOLOService
-from backend.services.caption_service import CaptionService
-from backend.services.vqa_service import VQAService
-from backend.services.feature_extraction import FeatureExtractor
-from backend.services.inspection_report import InspectionReportService
+from .config import UPLOAD_DIR, STATIC_DIR, RESULTS_DIR
+from .database import engine, get_db, Base
+from .models import InspectionLog
+from .services.yolo_service import YOLOService
+from .services.caption_service import CaptionService
+from .services.vqa_service import VQAService
+from .services.feature_extraction import FeatureExtractor
+from .services.inspection_report import InspectionReportService
 
 # Lifespan context manager for startup/shutdown events
 @asynccontextmanager
