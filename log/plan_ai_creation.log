@@ -109,3 +109,32 @@ Notes: Plans follow project rule (Goal/Input/Output/How to do/Lưu ý). Created 
 - Created backend/main.py with FastAPI routes (/detect, /segment, /caption, /vqa, /process_video, /logs).
 - Created backend/requirements.txt and scratch/test_endpoints.py.
 
+2026-07-06 - Thêm per-class augment_count và good_ratio vào preprocess.py:
+- AI/preprocess/preprocess.py:29: thêm import field từ dataclasses.
+- AI/preprocess/preprocess.py:40-41: thêm 2 field class_augment_count và class_good_ratio vào PreprocessConfig (dict, default empty).
+- AI/preprocess/preprocess.py:79-94: thêm CLI args --class-augment-count và --class-good-ratio (type str, parse JSON).
+- AI/preprocess/preprocess.py:97-118: build_config() parse JSON từ --class-augment-count và --class-good-ratio, validate kiểu dữ liệu.
+- AI/preprocess/preprocess.py:136: main() gọi balance_good_samples với tham số class_good_ratio thứ 7.
+- AI/preprocess/preprocess.py:227-229: balance_good_samples thêm param class_good_ratio, dùng class_good_ratio.get(class_name, good_ratio) để override ratio train split cho class yếu.
+- AI/preprocess/preprocess.py:292-293: process_records() dùng config.class_augment_count.get(record.class_name, config.augment_count) để lấy effective_augment_count per-class.
+- AI/preprocess/preprocess.py:471-472: write_runtime_config() lưu class_augment_count và class_good_ratio vào preprocess_config.json.
+- Thêm hàm _parse_key_value_or_json() hỗ trợ cả JSON và key=value,key2=value2 format để dễ dùng trên Windows PowerShell.
+
+2026-07-06 - Thêm CLI args degrees, scale vào train.py:
+- AI/train/train.py:42-43: thêm 2 field degrees, scale vào TrainConfig dataclass (default 2.0, 0.05).
+- AI/train/train.py:71-72: thêm CLI args --degrees (default=2.0) và --scale (default=0.05).
+- AI/train/train.py:98-99: build_config map degrees, scale từ args.
+- AI/train/train.py:375,377: build_ultralytics_kwargs dùng config.degrees, config.scale thay cho hardcode.
+
+2026-07-07 - Tạo file implement AI/test/evaluate.py:
+- AI/test/evaluate.py: script đánh giá model segmentation đầy đủ chức năng:
+  * run_ultralytics_val(): dùng model.val() built-in để tính mAP@0.5, mAP@0.5:0.95, Precision, Recall (box & mask)
+  * run_custom_evaluation(): per-image evaluation tính IoU, Dice cho segmentation masks
+  * evaluate_single_image(): tính TP/FP/FN ở mức ảnh, mask IoU/Dice
+  * run_single_image_inference(): debug nhanh trên 1 ảnh, in class, confidence, box, mask area
+  * compare_runs(): so sánh metrics giữa nhiều lần train khác nhau
+  * save_prediction_overlay(): lưu ảnh overlay kèm bounding box + mask
+  * save_reports(): xuất báo cáo JSON + CSV
+  * gather_test_samples(): quét dataset test theo cấu trúc per-class subdirectories
+  * Hỗ trợ CLI: --model, --data-yaml, --imgsz, --batch, --device, --conf, --iou, --output-dir, --single-image, --save-images, --compare-runs
+  * Xử lý edge cases: good samples (ko có defect), FN/FP detection, class imbalance

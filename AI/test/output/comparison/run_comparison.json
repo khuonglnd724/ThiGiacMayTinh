@@ -1,0 +1,74 @@
+[
+  {
+    "run_name": "segmentation",
+    "best_pt_path": "runs\\segment\\AI\\train\\runs\\ai-segmentation\\segmentation\\weights\\best.pt",
+    "box_map50": 0.7439860296330874,
+    "box_map50_95": 0.4416849035591782,
+    "mask_map50": 0.7252319938954442,
+    "mask_map50_95": 0.3767491480585327,
+    "box_precision": 0.8217450032871426,
+    "box_recall": 0.7593553368904951,
+    "mask_precision": 0.820166665027797,
+    "mask_recall": 0.7452295364268543
+  },
+  {
+    "run_name": "segmentation-smoke",
+    "best_pt_path": "runs\\segment\\AI\\train\\runs\\ai-segmentation\\segmentation-smoke\\weights\\best.pt",
+    "box_map50": 1.0393929944912171e-07,
+    "box_map50_95": 1.0393929944912171e-08,
+    "mask_map50": 0.0,
+    "mask_map50_95": 0.0,
+    "box_precision": 0.13334681086280883,
+    "box_recall": 0.0006666666666666666,
+    "mask_precision": 0.0,
+    "mask_recall": 0.0
+  },
+  {
+    "run_name": "segmentation-yolo11n-07-07-7h",
+    "best_pt_path": "runs\\segment\\AI\\train\\runs\\ai-segmentation\\segmentation-yolo11n-07-07-7h\\weights\\best.pt",
+    "box_map50": 0.7439860296330874,
+    "box_map50_95": 0.4416849035591782,
+    "mask_map50": 0.7252319938954442,
+    "mask_map50_95": 0.3767491480585327,
+    "box_precision": 0.8217450032871426,
+    "box_recall": 0.7593553368904951,
+    "mask_precision": 0.820166665027797,
+    "mask_recall": 0.7452295364268543
+  },
+  {
+    "run_name": "segmentation-yolo11n-26-6-18h",
+    "best_pt_path": "runs\\segment\\AI\\train\\runs\\ai-segmentation\\segmentation-yolo11n-26-6-18h\\weights\\best.pt",
+    "box_map50": 0.6459850309307258,
+    "box_map50_95": 0.376147001377167,
+    "mask_map50": 0.649583895925029,
+    "mask_map50_95": 0.33584601993937097,
+    "box_precision": 0.6978015319688088,
+    "box_recall": 0.7098506917918682,
+    "mask_precision": 0.7170197310322369,
+    "mask_recall": 0.6981004198694339
+  },
+  {
+    "run_name": "segmentation-yolo11n-26-6-6h",
+    "best_pt_path": "runs\\segment\\AI\\train\\runs\\ai-segmentation\\segmentation-yolo11n-26-6-6h\\weights\\best.pt",
+    "box_map50": 0.00011926605504587158,
+    "box_map50_95": 3.5779816513761474e-05,
+    "mask_map50": 0.00021880493149365506,
+    "mask_map50_95": 3.7099937329465853e-05,
+    "box_precision": 0.0005473624292987623,
+    "box_recall": 0.013333333333333334,
+    "mask_precision": 0.0006842030366234527,
+    "mask_recall": 0.016666666666666666
+  },
+  {
+    "run_name": "segmentation-yolo11n-27-6-23h",
+    "best_pt_path": "runs\\segment\\AI\\train\\runs\\ai-segmentation\\segmentation-yolo11n-27-6-23h\\weights\\best.pt",
+    "box_map50": 0.7145456096477208,
+    "box_map50_95": 0.41698645786421373,
+    "mask_map50": 0.713673553784895,
+    "mask_map50_95": 0.37120868331902906,
+    "box_precision": 0.7958849666552041,
+    "box_recall": 0.7390437616250174,
+    "mask_precision": 0.7837378510001063,
+    "mask_recall": 0.7371330737761135
+  }
+]

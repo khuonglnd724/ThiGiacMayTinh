@@ -1,6 +1,6 @@
 task: segment
 mode: train
-model: yolo11n-seg.pt
+model: runs/segment/AI/train/runs/ai-segmentation/segmentation-yolo11n-27-6-23h/weights/best.pt
 data: AI\train\data.yaml
 epochs: 1
 time: null

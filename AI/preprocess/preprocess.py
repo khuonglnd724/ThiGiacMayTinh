@@ -5,7 +5,7 @@ import csv
 import json
 import random
 import shutil
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
 
@@ -41,6 +41,8 @@ class PreprocessConfig:
     good_ratio: float = 0.5
     good_ratio_val: float = 0.2
     good_ratio_test: float = 0.2
+    class_augment_count: dict[str, int] = field(default_factory=dict)
+    class_good_ratio: dict[str, float] = field(default_factory=dict)
 
 
 def parse_args() -> argparse.Namespace:
@@ -86,10 +88,61 @@ def parse_args() -> argparse.Namespace:
         default=0.2,
         help="Fraction of 'good' samples in test split (0.2 = 20%%). Set to -1 to keep all.",
     )
+    parser.add_argument(
+        "--class-augment-count",
+        type=str,
+        default=None,
+        help='Per-class augment_count. JSON format: \'{"toothbrush":8,"grid":8}\' or key=value: toothbrush=8,grid=8',
+    )
+    parser.add_argument(
+        "--class-good-ratio",
+        type=str,
+        default=None,
+        help='Per-class good_ratio (train split). JSON format: \'{"toothbrush":0.2}\' or key=value: toothbrush=0.2,grid=0.2',
+    )
     return parser.parse_args()
 
 
+def _parse_key_value_or_json(raw: str) -> dict[str, str]:
+    """Parse a string that is either JSON or key=value,key2=value2 format."""
+    raw_stripped = raw.strip()
+
+    # Try JSON first
+    if raw_stripped.startswith("{"):
+        try:
+            return json.loads(raw_stripped)
+        except json.JSONDecodeError:
+            pass
+
+    # Try key=value,key2=value2 format
+    result: dict[str, str] = {}
+    for part in raw_stripped.split(","):
+        part = part.strip()
+        if "=" in part:
+            key, val = part.split("=", 1)
+            result[key.strip()] = val.strip()
+        else:
+            raise ValueError(f"Invalid key=value pair: '{part}'")
+    return result
+
+
 def build_config(args: argparse.Namespace) -> PreprocessConfig:
+    class_augment_count: dict[str, int] = {}
+    if args.class_augment_count:
+        try:
+            parsed = _parse_key_value_or_json(args.class_augment_count)
+            class_augment_count = {k: max(0, int(v)) for k, v in parsed.items()}
+        except (ValueError, TypeError) as exc:
+            raise SystemExit(f"Invalid --class-augment-count: {exc}") from exc
+
+    class_good_ratio: dict[str, float] = {}
+    if args.class_good_ratio:
+        try:
+            parsed = _parse_key_value_or_json(args.class_good_ratio)
+            class_good_ratio = {k: float(v) for k, v in parsed.items()}
+        except (ValueError, TypeError) as exc:
+            raise SystemExit(f"Invalid --class-good-ratio: {exc}") from exc
+
     return PreprocessConfig(
         dataset_root=Path(args.dataset_root),
         manifest_path=Path(args.manifest),
@@ -102,6 +155,8 @@ def build_config(args: argparse.Namespace) -> PreprocessConfig:
         good_ratio=args.good_ratio,
         good_ratio_val=args.good_ratio_val,
         good_ratio_test=args.good_ratio_test,
+        class_augment_count=class_augment_count,
+        class_good_ratio=class_good_ratio,
     )
 
 
@@ -118,7 +173,7 @@ def main() -> int:
     categories = sorted(list({r.class_name for r in records}))
     class_to_id = {cat: idx for idx, cat in enumerate(categories)}
 
-    records = balance_good_samples(records, config.good_ratio, config.good_ratio_val, config.good_ratio_test, rng)
+    records = balance_good_samples(records, config.good_ratio, config.good_ratio_val, config.good_ratio_test, rng, config.class_good_ratio)
 
     clear_output_dirs(config.output_root)
     prepare_output_dirs(config.output_root)
@@ -166,14 +221,20 @@ def balance_good_samples(
     good_ratio_val: float,
     good_ratio_test: float,
     rng: random.Random,
+    class_good_ratio: dict[str, float] | None = None,
 ) -> list[ManifestRecord]:
     """Downsample 'good' samples so they don't overwhelm defect samples.
 
     For each (class_name, split) group, keep at most
     ``max(1, int(defect_count * ratio))`` good samples, where ratio depends on split.
     Setting a ratio to -1 disables filtering for that split.
+
+    If ``class_good_ratio`` is provided, per-class ratios override the global ratio for train split.
     """
     from collections import defaultdict
+
+    if class_good_ratio is None:
+        class_good_ratio = {}
 
     # Group records by (class_name, split)
     groups: dict[tuple[str, str], dict[str, list[ManifestRecord]]] = defaultdict(
@@ -195,9 +256,9 @@ def balance_good_samples(
         if not good_records:
             continue
 
-        # Choose ratio based on split
+        # Choose ratio based on split, with per-class override for train
         if split == "train":
-            ratio = good_ratio
+            ratio = class_good_ratio.get(class_name, good_ratio)
         elif split == "val":
             ratio = good_ratio_val
         else:
@@ -224,6 +285,8 @@ def balance_good_samples(
         f"Balance: kept {total_good_after}/{total_good_before} good samples "
         f"(train={good_ratio}, val={good_ratio_val}, test={good_ratio_test})"
     )
+    if class_good_ratio:
+        print(f"  Per-class train good_ratio overrides: {class_good_ratio}")
     return balanced
 
 
@@ -262,7 +325,9 @@ def process_records(
         summary["processed"] += 1
 
         if record.label == "defect" and config.augment_count > 0:
-            for index in range(config.augment_count):
+            # Use per-class augment_count if specified, otherwise use global default
+            effective_augment_count = config.class_augment_count.get(record.class_name, config.augment_count)
+            for index in range(effective_augment_count):
                 aug_image, aug_mask = augment_pair(image, mask, rng)
                 suffix = f"_aug{index + 1:02d}"
                 write_sample(record, aug_image, aug_mask, config.output_root, suffix=suffix, class_id=class_id)
@@ -445,6 +510,8 @@ def write_runtime_config(config: PreprocessConfig, summary: dict[str, int], cate
         "good_ratio": config.good_ratio,
         "good_ratio_val": config.good_ratio_val,
         "good_ratio_test": config.good_ratio_test,
+        "class_augment_count": config.class_augment_count,
+        "class_good_ratio": config.class_good_ratio,
         "categories": categories,
         "summary": summary,
         "normalization_stats": {

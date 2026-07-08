@@ -44,6 +44,8 @@ class TrainConfig:
     smoke_test: bool
     cache: bool
     val: bool
+    degrees: float = 2.0
+    scale: float = 0.05
 
 
 def parse_args() -> argparse.Namespace:
@@ -69,6 +71,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--smoke-test", action="store_true", help="Run a very small training pass to validate the pipeline.")
     parser.add_argument("--cache", action="store_true", help="Cache dataset images in RAM if memory allows it.")
     parser.add_argument("--no-val", action="store_true", help="Disable validation during training.")
+    parser.add_argument("--degrees", type=float, default=2.0, help="Rotation augmentation degrees (default=2.0).")
+    parser.add_argument("--scale", type=float, default=0.05, help="Scale augmentation factor (default=0.05).")
     return parser.parse_args()
 
 
@@ -98,6 +102,8 @@ def build_config(args: argparse.Namespace) -> TrainConfig:
         smoke_test=bool(args.smoke_test),
         cache=bool(args.cache),
         val=not args.no_val,
+        degrees=args.degrees,
+        scale=args.scale,
     )
 
 
@@ -372,9 +378,9 @@ def build_ultralytics_kwargs(config: TrainConfig, data_yaml_path: Path) -> dict[
         "copy_paste": 0.0,
         "fliplr": 0.5,
         "flipud": 0.0,
-        "degrees": 2.0,
+        "degrees": config.degrees,
         "translate": 0.02,
-        "scale": 0.05,
+        "scale": config.scale,
         "shear": 0.0,
         "hsv_h": 0.01,
         "hsv_s": 0.2,

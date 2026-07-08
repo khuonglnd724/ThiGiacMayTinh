@@ -1,0 +1,323 @@
+{
+  "config": {
+    "model_path": "D:\\TGMT\\ThiGiacMayTinh\\runs\\segment\\AI\\train\\runs\\ai-segmentation\\segmentation\\weights\\best.pt",
+    "data_yaml": "D:\\TGMT\\ThiGiacMayTinh\\AI\\train\\data.yaml",
+    "imgsz": 640,
+    "batch": 1,
+    "device": "0",
+    "conf_threshold": 0.25,
+    "iou_threshold": 0.45
+  },
+  "ultralytics_metrics": {
+    "box_map50": 0.7439860296330874,
+    "box_map50_95": 0.4416849035591782,
+    "box_precision": 0.8217450032871426,
+    "box_recall": 0.7593553368904951,
+    "mask_map50": 0.7252319938954442,
+    "mask_map50_95": 0.3767491480585327,
+    "mask_precision": 0.820166665027797,
+    "mask_recall": 0.7452295364268543
+  },
+  "custom_metrics": {
+    "global": {
+      "tp": 612,
+      "fp": 0,
+      "fn": 77,
+      "precision": 1.0,
+      "recall": 0.8882,
+      "f1_score": 0.9408,
+      "mean_iou": 0.577,
+      "mean_dice": 0.6718,
+      "total_samples": 714
+    },
+    "per_class": [
+      {
+        "class": "bottle",
+        "samples": 21,
+        "tp": 20,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "mean_iou": 0.7624,
+        "mean_dice": 0.864
+      },
+      {
+        "class": "cable",
+        "samples": 46,
+        "tp": 28,
+        "fp": 0,
+        "fn": 16,
+        "precision": 1.0,
+        "recall": 0.6364,
+        "f1_score": 0.7778,
+        "mean_iou": 0.4538,
+        "mean_dice": 0.5206
+      },
+      {
+        "class": "capsule",
+        "samples": 138,
+        "tp": 112,
+        "fp": 0,
+        "fn": 23,
+        "precision": 1.0,
+        "recall": 0.8296,
+        "f1_score": 0.9069,
+        "mean_iou": 0.4199,
+        "mean_dice": 0.5266
+      },
+      {
+        "class": "carpet",
+        "samples": 25,
+        "tp": 24,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "mean_iou": 0.7459,
+        "mean_dice": 0.8505
+      },
+      {
+        "class": "grid",
+        "samples": 37,
+        "tp": 36,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "mean_iou": 0.6576,
+        "mean_dice": 0.7891
+      },
+      {
+        "class": "hazelnut",
+        "samples": 54,
+        "tp": 46,
+        "fp": 0,
+        "fn": 6,
+        "precision": 1.0,
+        "recall": 0.8846,
+        "f1_score": 0.9388,
+        "mean_iou": 0.6791,
+        "mean_dice": 0.7653
+      },
+      {
+        "class": "leather",
+        "samples": 54,
+        "tp": 52,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "mean_iou": 0.6906,
+        "mean_dice": 0.8106
+      },
+      {
+        "class": "metal_nut",
+        "samples": 46,
+        "tp": 42,
+        "fp": 0,
+        "fn": 2,
+        "precision": 1.0,
+        "recall": 0.9545,
+        "f1_score": 0.9767,
+        "mean_iou": 0.7696,
+        "mean_dice": 0.8464
+      },
+      {
+        "class": "pill",
+        "samples": 58,
+        "tp": 50,
+        "fp": 0,
+        "fn": 6,
+        "precision": 1.0,
+        "recall": 0.8929,
+        "f1_score": 0.9434,
+        "mean_iou": 0.6674,
+        "mean_dice": 0.7594
+      },
+      {
+        "class": "screw",
+        "samples": 63,
+        "tp": 56,
+        "fp": 0,
+        "fn": 4,
+        "precision": 1.0,
+        "recall": 0.9333,
+        "f1_score": 0.9655,
+        "mean_iou": 0.5934,
+        "mean_dice": 0.7134
+      },
+      {
+        "class": "tile",
+        "samples": 29,
+        "tp": 28,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "mean_iou": 0.8236,
+        "mean_dice": 0.9001
+      },
+      {
+        "class": "toothbrush",
+        "samples": 55,
+        "tp": 38,
+        "fp": 0,
+        "fn": 16,
+        "precision": 1.0,
+        "recall": 0.7037,
+        "f1_score": 0.8261,
+        "mean_iou": 0.3146,
+        "mean_dice": 0.395
+      },
+      {
+        "class": "transistor",
+        "samples": 17,
+        "tp": 16,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "mean_iou": 0.7861,
+        "mean_dice": 0.8777
+      },
+      {
+        "class": "wood",
+        "samples": 13,
+        "tp": 12,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "mean_iou": 0.759,
+        "mean_dice": 0.8614
+      },
+      {
+        "class": "zipper",
+        "samples": 58,
+        "tp": 52,
+        "fp": 0,
+        "fn": 4,
+        "precision": 1.0,
+        "recall": 0.9286,
+        "f1_score": 0.963,
+        "mean_iou": 0.6911,
+        "mean_dice": 0.7887
+      }
+    ]
+  },
+  "per_class_ap": [
+    {
+      "class": 0,
+      "box_p": 0.9631758752172038,
+      "box_r": 1.0,
+      "box_ap50": 0.995,
+      "box_map50_95": 0.6270740093240094
+    },
+    {
+      "class": 1,
+      "box_p": 0.788843383195107,
+      "box_r": 0.48923416026592553,
+      "box_ap50": 0.49892626965471265,
+      "box_map50_95": 0.3635795655599351
+    },
+    {
+      "class": 2,
+      "box_p": 0.8019078738773628,
+      "box_r": 0.5820911135007056,
+      "box_ap50": 0.597716402400781,
+      "box_map50_95": 0.2556583385344752
+    },
+    {
+      "class": 3,
+      "box_p": 0.8333333333333334,
+      "box_r": 0.7142857142857143,
+      "box_ap50": 0.7083333333333333,
+      "box_map50_95": 0.5077047619047618
+    },
+    {
+      "class": 4,
+      "box_p": 0.9100169248779818,
+      "box_r": 0.7779401151639274,
+      "box_ap50": 0.8041114989217962,
+      "box_map50_95": 0.3675273650816178
+    },
+    {
+      "class": 5,
+      "box_p": 0.5225155794842226,
+      "box_r": 0.558112098531383,
+      "box_ap50": 0.4793940111664321,
+      "box_map50_95": 0.2662222778363891
+    },
+    {
+      "class": 6,
+      "box_p": 0.9767935124390663,
+      "box_r": 0.9807692307692307,
+      "box_ap50": 0.9778846153846156,
+      "box_map50_95": 0.4878390731742404
+    },
+    {
+      "class": 7,
+      "box_p": 0.9139331402825305,
+      "box_r": 0.8169396600520723,
+      "box_ap50": 0.8232978723404256,
+      "box_map50_95": 0.6126524556806588
+    },
+    {
+      "class": 8,
+      "box_p": 0.9590389720018627,
+      "box_r": 0.9230769230769231,
+      "box_ap50": 0.9215475020629003,
+      "box_map50_95": 0.6021941762652097
+    },
+    {
+      "class": 9,
+      "box_p": 0.6845798353783382,
+      "box_r": 0.7341122856448503,
+      "box_ap50": 0.6502714731767645,
+      "box_map50_95": 0.3081075111407425
+    },
+    {
+      "class": 10,
+      "box_p": 0.9477143575561267,
+      "box_r": 1.0,
+      "box_ap50": 0.995,
+      "box_map50_95": 0.7164931418219462
+    },
+    {
+      "class": 11,
+      "box_p": 0.366261960750798,
+      "box_r": 0.26262626262626265,
+      "box_ap50": 0.23869707644416044,
+      "box_map50_95": 0.17148179091340243
+    },
+    {
+      "class": 12,
+      "box_p": 0.9285714285714286,
+      "box_r": 0.65,
+      "box_ap50": 0.6414285714285715,
+      "box_map50_95": 0.3515643939393939
+    },
+    {
+      "class": 13,
+      "box_p": 0.729488872341778,
+      "box_r": 0.95,
+      "box_ap50": 0.8731818181818182,
+      "box_map50_95": 0.45776156299840515
+    },
+    {
+      "class": 14,
+      "box_p": 1.0,
+      "box_r": 0.9511424894404303,
+      "box_ap50": 0.9550000000000001,
+      "box_map50_95": 0.5294131292124862
+    }
+  ]
+}
