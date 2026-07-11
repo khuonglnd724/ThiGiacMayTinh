@@ -1,0 +1,6 @@
+[2026-07-06] Backend startup fix
+- Đã cài đặt các dependency cần thiết cho backend: sqlalchemy, fastapi, uvicorn, pillow, numpy, opencv-python, ultralytics, transformers, torch.
+- Đã sửa lỗi import khi chạy `python main.py` bằng cách thêm fallback import cho cả chế độ package và script.
+- Đã cập nhật các file backend: backend/main.py, backend/database.py, backend/models.py, backend/services/yolo_service.py, backend/services/vqa_service.py, backend/services/__init__.py.
+- Đã thêm entrypoint chạy server bằng uvicorn trong backend/main.py.
+- Đã xác nhận backend khởi động thành công và phản hồi HTTP 200 tại http://127.0.0.1:8000/.

@@ -8,7 +8,7 @@ const API_BASE = 'http://localhost:8000';
 class APIClient {
   constructor(baseUrl = API_BASE) {
     this.baseUrl = baseUrl;
-    this.timeout = 30000; // 30s timeout
+    this.timeout = 300000; // 5 min timeout for video processing
   }
 
   /**
@@ -130,21 +130,42 @@ class APIClient {
   }
 
   /**
-   * Upload and process video
+   * Upload and process video (with scene change detection)
    * @param {File} file - Video file
    * @param {number} confidence - Confidence threshold
-   * @param {number} skipRate - Process every N frames
-   * @returns {Object} {status, message, total_frames, defect_frames}
+   * @param {number} maxFrames - Maximum frames to process
+   * @param {number} sceneThreshold - Scene change detection threshold (lower = more sensitive)
+   * @returns {Object} {status, message, total_frames, unique_images_detected, defect_frames}
    */
-  async processVideo(file, confidence = 0.25, skipRate = 5) {
+  async processVideo(file, confidence = 0.25, maxFrames = 40, sceneThreshold = 30.0) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('conf', confidence);
-    formData.append('skip_rate', skipRate);
+    formData.append('max_frames', maxFrames);
+    formData.append('scene_threshold', sceneThreshold);
 
     return this.request('/process_video', {
       method: 'POST',
       body: formData,
+    });
+  }
+
+  /**
+   * Simulate a live conveyor inspection stream from the backend.
+   * @param {number} frames - Number of simulated frames to return
+   * @param {number} intervalMs - Delay between frames in milliseconds
+   * @param {number} confidence - Confidence threshold used for the simulation
+   * @returns {Object} {status, frames, interval_ms}
+   */
+  async simulateConveyor(frames = 8, intervalMs = 800, confidence = 0.25) {
+    const params = new URLSearchParams({
+      frames,
+      interval_ms: intervalMs,
+      confidence,
+    });
+
+    return this.request(`/conveyor/simulate?${params}`, {
+      method: 'GET',
     });
   }
 

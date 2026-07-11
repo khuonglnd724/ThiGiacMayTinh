@@ -1,3 +1,4 @@
+import base64
 import os
 import shutil
 import uuid
@@ -8,15 +9,105 @@ from fastapi import FastAPI, File, UploadFile, Form, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
+import uvicorn
 
-from .config import UPLOAD_DIR, STATIC_DIR, RESULTS_DIR
-from .database import engine, get_db, Base
-from .models import InspectionLog
-from .services.yolo_service import YOLOService
-from .services.caption_service import CaptionService
-from .services.vqa_service import VQAService
-from .services.feature_extraction import FeatureExtractor
-from .services.inspection_report import InspectionReportService
+try:
+    from .config import UPLOAD_DIR, STATIC_DIR, RESULTS_DIR
+    from .database import engine, get_db, Base
+    from .models import InspectionLog
+    from .services.yolo_service import YOLOService
+    from .services.caption_service import CaptionService
+    from .services.vqa_service import VQAService
+    from .services.feature_extraction import FeatureExtractor
+    from .services.inspection_report import InspectionReportService
+except ImportError:
+    from config import UPLOAD_DIR, STATIC_DIR, RESULTS_DIR
+    from database import engine, get_db, Base
+    from models import InspectionLog
+    from services.yolo_service import YOLOService
+    from services.caption_service import CaptionService
+    from services.vqa_service import VQAService
+    from services.feature_extraction import FeatureExtractor
+    from services.inspection_report import InspectionReportService
+
+def is_defect_frame(predictions):
+    """Treat a frame as defective when the model returns any meaningful defect-like prediction."""
+    if not predictions:
+        return False
+
+    defect_keywords = {
+        "defect",
+        "scratch",
+        "dent",
+        "crack",
+        "break",
+        "chip",
+        "spot",
+        "bubble",
+        "deform",
+        "contamination",
+    }
+
+    for pred in predictions:
+        class_name = str(pred.get("class_name", "")).lower()
+        confidence = float(pred.get("confidence", 0) or 0)
+        if any(keyword in class_name for keyword in defect_keywords) or confidence >= 0.7:
+            return True
+
+    return False
+
+
+def build_simulated_conveyor_frames(frames=8, interval_ms=800, confidence=0.25):
+    """Build a deterministic batch of synthetic conveyor inspection frames."""
+    generated_frames = []
+
+    for frame_index in range(1, frames + 1):
+        defect_count = 1 if frame_index % 3 == 0 else 0
+        if frame_index % 5 == 0:
+            defect_count = 2
+
+        verdict = "REJECT" if defect_count >= 2 else "FLAG" if defect_count > 0 else "PASS"
+        defect_color = "#ff4d4f" if verdict != "PASS" else "#4caf50"
+
+        defect_markers = ""
+        for offset in range(defect_count):
+            x = 120 + offset * 70 + (frame_index * 8 % 40)
+            y = 90 + offset * 40 + (frame_index % 3) * 18
+            defect_markers += (
+                f'<rect x="{x}" y="{y}" width="46" height="30" rx="8" '
+                f'fill="{defect_color}" stroke="#ffffff" stroke-width="3" />'
+            )
+
+        svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360">
+  <rect width="640" height="360" fill="#0f172a" />
+  <rect x="40" y="70" width="560" height="220" rx="30" fill="#111827" stroke="#38bdf8" stroke-width="4" />
+  <rect x="60" y="210" width="520" height="40" rx="20" fill="#1f2937" />
+  <rect x="80" y="180" width="480" height="20" rx="10" fill="#475569" />
+  <circle cx="130" cy="125" r="16" fill="#fbbf24" />
+  <circle cx="510" cy="125" r="16" fill="#34d399" />
+  <rect x="80" y="90" width="180" height="30" rx="12" fill="#334155" />
+  <rect x="300" y="90" width="180" height="30" rx="12" fill="#334155" />
+  <text x="120" y="110" fill="#f8fafc" font-family="Arial" font-size="18">Conveyor</text>
+  <text x="340" y="110" fill="#f8fafc" font-family="Arial" font-size="18">Inspection</text>
+  {defect_markers}
+  <rect x="420" y="220" width="120" height="24" rx="8" fill="#f59e0b" />
+  <text x="80" y="300" fill="#f8fafc" font-family="Arial" font-size="24">Frame {frame_index} • {verdict} • {confidence:.2f} confidence</text>
+</svg>'''
+
+        encoded_svg = base64.b64encode(svg.encode("utf-8")).decode("ascii")
+        generated_frames.append(
+            {
+                "frame_index": frame_index,
+                "timestamp": round(frame_index * interval_ms / 1000, 2),
+                "verdict": verdict,
+                "defect_count": defect_count,
+                "confidence": confidence,
+                "image_url": f"data:image/svg+xml;base64,{encoded_svg}",
+            }
+        )
+
+    return generated_frames
+
 
 # Lifespan context manager for startup/shutdown events
 @asynccontextmanager
@@ -56,6 +147,24 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 @app.get("/")
 async def root():
     return {"message": "Computer Vision Quality Control API is active"}
+
+@app.get("/conveyor/simulate")
+async def simulate_conveyor(frames: int = 8, interval_ms: int = 800, confidence: float = 0.25):
+    """Return a simulated stream of conveyor inspection frames for the live UI."""
+    safe_frame_count = max(1, min(int(frames), 12))
+    safe_interval = max(200, int(interval_ms))
+    safe_confidence = max(0.05, min(float(confidence), 0.99))
+
+    return {
+        "status": "success",
+        "mode": "simulated_live",
+        "interval_ms": safe_interval,
+        "frames": build_simulated_conveyor_frames(
+            frames=safe_frame_count,
+            interval_ms=safe_interval,
+            confidence=safe_confidence,
+        ),
+    }
 
 @app.post("/detect")
 async def detect(file: UploadFile = File(...), conf: float = 0.25):
@@ -186,16 +295,58 @@ async def vqa(file: UploadFile = File(...), question: str = Form(...)):
         if temp_path.exists():
             os.remove(temp_path)
 
+def detect_scene_change(frame1, frame2, threshold=5.0):
+    """
+    Detect if there is a significant scene change between two frames.
+    Uses TWO methods for robustness:
+    1. Mean Squared Error (pixel difference) - phát hiện thay đổi pixel rõ rệt
+    2. Histogram comparison (Chi-square) - cho ảnh cùng tông màu
+    
+    Returns True if a new scene/image appears.
+    For video composed of stitched images, this detects when a new image appears.
+    """
+    if frame1 is None or frame2 is None:
+        return True
+    
+    h, w = frame1.shape[:2]
+    
+    # Method 1: MSE (Mean Squared Error) - nhạy với thay đổi pixel
+    diff_pixels = cv2.absdiff(frame1, frame2)
+    mse = float((diff_pixels ** 2).sum()) / (h * w * 3)
+    
+    # If MSE > 10, definitely a scene change (2 ảnh khác nhau có MSE > 10-20)
+    if mse > 10.0:
+        return True
+    
+    # Method 2: Histogram Chi-square - cho ảnh cùng tông màu nhưng bố cục khác
+    gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+    gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+    
+    hist1 = cv2.calcHist([gray1], [0], None, [256], [0, 256])
+    hist2 = cv2.calcHist([gray2], [0], None, [256], [0, 256])
+    
+    cv2.normalize(hist1, hist1, 0, 1, cv2.NORM_MINMAX)
+    cv2.normalize(hist2, hist2, 0, 1, cv2.NORM_MINMAX)
+    
+    hist_diff = cv2.compareHist(hist1, hist2, cv2.HISTCMP_CHISQR)
+    
+    return hist_diff > threshold
+
+
 @app.post("/process_video")
 async def process_video(
     file: UploadFile = File(...),
     conf: float = 0.25,
-    frame_skip: int = 5,
+    max_frames: int = Form(40),
+    scene_threshold: float = Form(30.0),
     db: Session = Depends(get_db)
 ):
     """
-    Uploads a video, extracts frames at designated skip intervals, 
-    runs YOLO segmentation, logs results to DB, and returns summary.
+    Uploads a video (composed of stitched product images), detects scene changes 
+    to process only unique frames, runs YOLO segmentation, logs results to DB.
+    
+    Uses scene change detection to avoid processing duplicate frames 
+    (same image appearing multiple times in a slideshow video).
     """
     file_ext = os.path.splitext(file.filename)[1]
     temp_filename = f"{uuid.uuid4()}{file_ext}"
@@ -219,6 +370,11 @@ async def process_video(
         inspected_count = 0
         defects_found = 0
         logs = []
+        max_frames_to_inspect = max(1, min(int(max_frames), 80))
+        unique_images_found = 0
+        last_processed_predictions = None
+        last_processed_has_defect = False
+        scene_first_frame = None  # Track first frame of current scene
         
         yolo_service: YOLOService = app.state.yolo
         
@@ -226,27 +382,42 @@ async def process_video(
             ret, frame = cap.read()
             if not ret:
                 break
+            
+            # --- SCENE CHANGE DETECTION ---
+            # Compare with FIRST frame of current scene (not previous frame)
+            # This handles fade transitions correctly
+            is_new_scene = (scene_first_frame is None) or detect_scene_change(scene_first_frame, frame, threshold=scene_threshold)
+            
+            if is_new_scene:
+                # This is a unique image/frame
+                unique_images_found += 1
                 
-            # Skip frames to optimize performance
-            if frame_idx % frame_skip == 0:
+                if inspected_count >= max_frames_to_inspect:
+                    break
+                
+                # Update first frame of current scene
+                scene_first_frame = frame.copy()
+                
                 inspected_count += 1
                 timestamp_sec = round(frame_idx / fps, 2)
                 
-                # Predict on the frame (OpenCV returns BGR numpy array)
+                # Predict on the frame using YOLO (CHỈ 1 LẦN cho mỗi ảnh)
                 predictions, annotated_bgr = yolo_service.predict(frame, conf=conf, task="segment")
                 
-                has_defect = any(pred["class_name"] == "defect" for pred in predictions)
+                has_defect = is_defect_frame(predictions)
                 saved_image_path = None
                 
-                # If defect found, save the annotated frame
-                if has_defect and annotated_bgr is not None:
-                    defects_found += 1
-                    saved_filename = f"video_{temp_filename}_frame_{frame_idx}.jpg"
+                # Save annotated frame
+                if annotated_bgr is not None:
+                    saved_filename = f"video_{temp_filename}_scene_{unique_images_found}.jpg"
                     saved_path = RESULTS_DIR / saved_filename
                     cv2.imwrite(str(saved_path), annotated_bgr)
                     saved_image_path = f"/static/results/{saved_filename}"
                 
-                # Save log record to DB
+                if has_defect:
+                    defects_found += 1
+                
+                # Save to DB (only 1 record per unique image)
                 log_entry = InspectionLog(
                     video_name=file.filename,
                     frame_index=frame_idx,
@@ -265,9 +436,15 @@ async def process_video(
                     "timestamp": timestamp_sec,
                     "has_defect": has_defect,
                     "predictions_count": len(predictions),
-                    "saved_image_url": saved_image_path
+                    "predictions": predictions,
+                    "saved_image_url": saved_image_path,
+                    "is_first_frame": True  # Flag: this is the first frame of the scene
                 })
                 
+                last_processed_predictions = predictions
+                last_processed_has_defect = has_defect
+            
+            # Skip duplicate frames entirely (no log, no YOLO)
             frame_idx += 1
             
         cap.release()
@@ -276,8 +453,11 @@ async def process_video(
             "status": "success",
             "video_name": file.filename,
             "total_frames_in_video": total_frames,
+            "unique_images_detected": unique_images_found,
             "frames_inspected": inspected_count,
             "defects_found": defects_found,
+            "max_frames_limit": max_frames_to_inspect,
+            "scene_threshold": scene_threshold,
             "logs": logs
         }
         
@@ -394,4 +574,8 @@ async def inspect(file: UploadFile = File(...), conf: float = 0.25):
         # Cleanup temp file
         if temp_path.exists():
             os.remove(temp_path)
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
 

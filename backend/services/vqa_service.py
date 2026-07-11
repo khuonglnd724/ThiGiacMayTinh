@@ -135,7 +135,10 @@ class VQAService:
 
         # "Report?" / "Summary?"
         if any(kw in q for kw in ["report", "summary", "overview"]):
-            from backend.services.inspection_report import InspectionReportService
+            try:
+                from backend.services.inspection_report import InspectionReportService
+            except ImportError:
+                from services.inspection_report import InspectionReportService
             reporter = InspectionReportService()
             if report:
                 return reporter.generate_text_summary(report)
