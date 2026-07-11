@@ -1,6 +1,10 @@
 # 🚀 Quick Start Guide - Frontend
 
 ## ⚡ 2 Phút Setup
+## Đầu tiên tải các phần cần thiết
+```
+pip install -r requirements.txt
+``` 
 
 ### 1. Đảm bảo Backend Chạy
 
