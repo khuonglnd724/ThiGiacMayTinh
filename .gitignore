@@ -9,3 +9,5 @@ docs/plan/plan_preprocess_train_pipeline.md
 docs/plan/plan_cai_tien_ket_qua_train.md
 runs/segment/AI/train/runs/ai-segmentation/segmentation/log.txt
 runs/segment/AI/train/runs/ai-segmentation/segmentation-yolo11n-07-07-7h/log.txt
+AI/test/output/evaluation_report.md
+runs/segment/AI/train/runs/ai-segmentation/temp01/log.txt

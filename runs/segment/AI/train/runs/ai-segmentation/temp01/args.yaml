@@ -1,10 +1,10 @@
 task: segment
 mode: train
-model: runs/segment/AI/train/runs/ai-segmentation/segmentation-yolo11n-27-6-23h/weights/best.pt
+model: yolo11n-seg.pt
 data: AI\train\data.yaml
-epochs: 150
+epochs: 10
 time: null
-patience: 30
+patience: 5
 batch: 4
 imgsz: 640
 save: true
@@ -90,9 +90,9 @@ nbs: 32
 hsv_h: 0.01
 hsv_s: 0.2
 hsv_v: 0.15
-degrees: 5.0
+degrees: 10.0
 translate: 0.02
-scale: 0.2
+scale: 0.3
 shear: 0.0
 perspective: 0.0
 flipud: 0.0

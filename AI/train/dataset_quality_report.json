@@ -66,7 +66,7 @@
           "defect": 80
         }
       },
-      "missing_images": 2465,
+      "missing_images": 2530,
       "missing_labels": 2859,
       "empty_defect_masks": 0,
       "mismatched_masks": 0
