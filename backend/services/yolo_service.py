@@ -2,7 +2,11 @@ import cv2
 import numpy as np
 from PIL import Image
 from ultralytics import YOLO
-from backend.config import get_yolo_path
+
+try:
+    from backend.config import get_yolo_path
+except ImportError:
+    from config import get_yolo_path
 
 class YOLOService:
     def __init__(self):

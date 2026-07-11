@@ -1,6 +1,10 @@
 import datetime
 from sqlalchemy import Column, Integer, String, Float, Boolean, JSON, DateTime
-from backend.database import Base
+
+try:
+    from backend.database import Base
+except ImportError:
+    from database import Base
 
 class InspectionLog(Base):
     __tablename__ = "inspection_logs"

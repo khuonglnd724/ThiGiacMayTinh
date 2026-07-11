@@ -1,0 +1,50 @@
+=== [2026-07-10 19:37:04] CẬP NHẬT CONVEYOR LIVE SIMULATION ===
+
+## Files modified:
+1. backend/main.py
+2. frontend/index.html
+3. frontend/js/api.js
+4. docs/plan/conveyor_live_simulation_plan.md
+5. log/conveyor_live_simulation.log (current)
+
+## Backend changes (backend/main.py):
+- Added function `detect_scene_change(frame1, frame2, threshold=5.0)`:
+  - MSE (threshold 10) + Histogram Chi-square (threshold 5)
+- Modified endpoint `/process_video`:
+  - Removed `frame_skip`, added `scene_threshold`
+  - So sánh với `scene_first_frame` (frame đầu scene) thay vì frame trước
+  - Chỉ xử lý YOLO khi phát hiện scene mới
+  - Bỏ ghi log duplicate frame
+  - Response: `unique_images_detected`, `is_first_frame`
+
+## Frontend changes (frontend/js/api.js):
+- Changed `processVideo()` signature: skipRate -> sceneThreshold (default 30.0)
+
+## Frontend changes (frontend/index.html):
+- Cập nhật processSelectedVideo() gọi API với scene_threshold=5.0
+- Thêm replayVideoStream(): phát lại video từ kết quả
+- Frame gallery: hiển thị tất cả frame dạng lưới
+- Defect cards: hiển thị ảnh + timestamp + số phát hiện
+- saveVideoHistory(): lưu video history với logs
+- restoreVideoResult(): xem lại kết quả từ lịch sử
+- renderVideoResultsOnly(): render không lưu history (tránh nhân đôi)
+- loadHistory(): hiển thị thumbnail cho cả ảnh và video
+
+## Docs changes (docs/plan/conveyor_live_simulation_plan.md):
+- Updated to follow rule.md format: Goal, Input, Output, How to do, Lưu ý
+- Added Scene Change Detection section
+- Added `scene_threshold` parameter documentation
+
+=== [2026-07-10 20:07:41] FINAL FIX: History duplicate + Replay video ===
+- Moved the reviewed-video playback into the main results panel under the "Xem lại video" button so replayed frames are shown on the central screen instead of the small sidebar preview.
+- Fixed the replay button wiring so clicking it now opens the main-screen playback container.
+
+=== [2026-07-10 20:30:00] HISTORY COUNT + IMAGE DEFECT DISPLAY FIX ===
+- Normalized count rendering in frontend/index.html to prevent raw object values from appearing as [object Object].
+- Added pass-count display next to defect-count in image results, video results, restored history cards, and main results replay views.
+- Updated history cards so video rows show both pass and defect totals, and image rows show pass plus defect totals even when no defect is found.
+- Updated docs/plan/conveyor_live_simulation_plan.md to reflect the normalized count display and history summary behavior.
+
+=== [2026-07-11 09:00:00] REQUIREMENTS FILE ADDED ===
+- Added root requirements.txt so the backend libraries can be installed with one command.
+- requirements.txt includes FastAPI, Uvicorn, python-multipart, SQLAlchemy, Pillow, NumPy, OpenCV, Ultralytics, Torch, Torchvision, and Transformers.
