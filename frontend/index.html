@@ -1,18 +1,29 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kiểm Tra Chất Lượng Sản Phẩm</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: #f5f7fa;
       min-height: 100vh;
     }
-    .container { max-width: 1600px; margin: 0 auto; padding: 8px; }
-    
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 8px;
+    }
+
     header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
@@ -21,34 +32,46 @@
       text-align: center;
       margin-bottom: 15px;
     }
-    header h1 { font-size: 1.8em; margin-bottom: 5px; }
-    header p { font-size: 0.95em; opacity: 0.9; }
-    
+
+    header h1 {
+      font-size: 1.8em;
+      margin-bottom: 5px;
+    }
+
+    header p {
+      font-size: 0.95em;
+      opacity: 0.9;
+    }
+
     .wrapper {
       display: grid;
       grid-template-columns: 280px 1fr;
       gap: 15px;
       min-height: calc(100vh - 150px);
     }
-    
+
     .sidebar {
       background: white;
       border-radius: 10px;
       padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       overflow-y: auto;
     }
-    
+
     .main {
       background: white;
       border-radius: 10px;
       padding: 25px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       overflow-y: auto;
     }
-    
-    h3 { font-size: 1.1em; margin-bottom: 15px; color: #333; }
-    
+
+    h3 {
+      font-size: 1.1em;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
     .upload-box {
       border: 2px dashed #667eea;
       border-radius: 12px;
@@ -60,15 +83,41 @@
       transition: all 0.3s;
       box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
     }
-    .upload-box:hover { background: linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%); border-color: #764ba2; box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2); transform: translateY(-2px); }
-    .upload-box.drag { background: linear-gradient(135deg, #e8ecff 0%, #dfe7ff 100%); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3); border-color: #764ba2; }
-    
-    .upload-icon { font-size: 2.8em; margin-bottom: 12px; }
-    .upload-text { font-size: 1.1em; font-weight: 700; color: #667eea; margin-bottom: 5px; }
-    .upload-sub { font-size: 0.8em; color: #888; }
-    
-    #fileInput { display: none; }
-    
+
+    .upload-box:hover {
+      background: linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);
+      border-color: #764ba2;
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .upload-box.drag {
+      background: linear-gradient(135deg, #e8ecff 0%, #dfe7ff 100%);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+      border-color: #764ba2;
+    }
+
+    .upload-icon {
+      font-size: 2.8em;
+      margin-bottom: 12px;
+    }
+
+    .upload-text {
+      font-size: 1.1em;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+
+    .upload-sub {
+      font-size: 0.8em;
+      color: #888;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
     #preview {
       max-width: 100%;
       max-height: 140px;
@@ -77,15 +126,18 @@
       margin-bottom: 12px;
       border: 1px solid #e0e0e0;
     }
-    
-    #fileInfo { 
-      font-size: 0.75em; 
+
+    #fileInfo {
+      font-size: 0.75em;
       color: #666;
       margin-bottom: 12px;
       word-break: break-all;
     }
-    
-    .form-group { margin-bottom: 15px; }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
     .form-group label {
       display: block;
       margin-bottom: 5px;
@@ -93,7 +145,7 @@
       font-size: 0.85em;
       color: #333;
     }
-    
+
     .form-group input[type="range"] {
       width: 100%;
       height: 4px;
@@ -102,20 +154,25 @@
       outline: none;
       -webkit-appearance: none;
     }
+
     .form-group input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 14px; height: 14px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       background: #667eea;
       cursor: pointer;
     }
+
     .form-group input[type="range"]::-moz-range-thumb {
-      width: 14px; height: 14px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       background: #667eea;
-      cursor: pointer; border: none;
+      cursor: pointer;
+      border: none;
     }
-    
+
     .value-badge {
       display: inline-block;
       background: #e0e8ff;
@@ -125,7 +182,7 @@
       font-weight: bold;
       font-size: 0.8em;
     }
-    
+
     button {
       width: 100%;
       padding: 10px;
@@ -136,15 +193,23 @@
       transition: all 0.3s;
       margin-bottom: 10px;
     }
-    
+
     .btn-primary {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       font-size: 0.95em;
     }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-    
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .status {
       padding: 10px 12px;
       border-radius: 6px;
@@ -152,28 +217,53 @@
       font-size: 0.85em;
       border-left: 3px solid;
     }
-    .status.show { display: block; }
-    .status-info { background: #e3f2fd; color: #1976d2; border-left-color: #1976d2; }
-    .status-success { background: #e8f5e9; color: #388e3c; border-left-color: #388e3c; }
-    .status-error { background: #ffebee; color: #d32f2f; border-left-color: #d32f2f; }
-    
+
+    .status.show {
+      display: block;
+    }
+
+    .status-info {
+      background: #e3f2fd;
+      color: #1976d2;
+      border-left-color: #1976d2;
+    }
+
+    .status-success {
+      background: #e8f5e9;
+      color: #388e3c;
+      border-left-color: #388e3c;
+    }
+
+    .status-error {
+      background: #ffebee;
+      color: #d32f2f;
+      border-left-color: #d32f2f;
+    }
+
     .spinner {
       display: inline-block;
-      width: 12px; height: 12px;
+      width: 12px;
+      height: 12px;
       border: 2px solid #f3f3f3;
       border-top-color: #667eea;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
       margin-right: 6px;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
     .tabs {
       display: flex;
       gap: 0;
       margin-bottom: 20px;
       border-bottom: 2px solid #e0e0e0;
     }
+
     .tab-btn {
       padding: 10px 16px;
       background: none;
@@ -185,11 +275,20 @@
       transition: all 0.3s;
       font-size: 0.95em;
     }
-    .tab-btn.active { color: #667eea; border-bottom-color: #667eea; }
-    
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    
+
+    .tab-btn.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
     .result-image {
       width: 100%;
       max-height: 450px;
@@ -198,7 +297,7 @@
       border: 1px solid #e0e0e0;
       margin-bottom: 20px;
     }
-    
+
     .image-section {
       background: linear-gradient(135deg, #f8fbff 0%, #f4f7ff 100%);
       padding: 15px;
@@ -206,8 +305,14 @@
       margin-bottom: 20px;
       border: 1px solid #dfe7ff;
     }
-    .image-caption { font-size: 0.9em; color: #4b5a7a; margin-bottom: 10px; font-weight: 600; }
-    
+
+    .image-caption {
+      font-size: 0.9em;
+      color: #4b5a7a;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
     .verdict-badge {
       display: flex;
       align-items: center;
@@ -218,20 +323,47 @@
       margin-bottom: 20px;
       font-weight: 500;
     }
-    .verdict-icon { font-size: 2.2em; }
-    .verdict-status { font-size: 1.2em; font-weight: bold; margin-bottom: 3px; }
-    .verdict-desc { font-size: 0.85em; opacity: 0.85; }
-    
-    .verdict-pass { background: #e8f5e9; border-left-color: #4caf50; color: #1b5e20; }
-    .verdict-flag { background: #fff3e0; border-left-color: #ff9800; color: #e65100; }
-    .verdict-reject { background: #ffebee; border-left-color: #f44336; color: #b71c1c; }
-    
+
+    .verdict-icon {
+      font-size: 2.2em;
+    }
+
+    .verdict-status {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 3px;
+    }
+
+    .verdict-desc {
+      font-size: 0.85em;
+      opacity: 0.85;
+    }
+
+    .verdict-pass {
+      background: #e8f5e9;
+      border-left-color: #4caf50;
+      color: #1b5e20;
+    }
+
+    .verdict-flag {
+      background: #fff3e0;
+      border-left-color: #ff9800;
+      color: #e65100;
+    }
+
+    .verdict-reject {
+      background: #ffebee;
+      border-left-color: #f44336;
+      color: #b71c1c;
+    }
+
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 12px;
       margin-bottom: 20px;
     }
+
     .stat-box {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
@@ -239,11 +371,20 @@
       border-radius: 8px;
       text-align: center;
     }
-    .stat-label { font-size: 0.75em; opacity: 0.9; margin-bottom: 5px; }
-    .stat-value { font-size: 1.8em; font-weight: bold; }
-    
-    .section-title { 
-      font-size: 1.15em; 
+
+    .stat-label {
+      font-size: 0.75em;
+      opacity: 0.9;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 1.8em;
+      font-weight: bold;
+    }
+
+    .section-title {
+      font-size: 1.15em;
       margin: 25px 0 18px;
       color: #1a1a1a;
       font-weight: 700;
@@ -251,7 +392,7 @@
       align-items: center;
       gap: 8px;
     }
-    
+
     .defect-card {
       background: white;
       border-radius: 12px;
@@ -261,26 +402,29 @@
       overflow: hidden;
       border: 1px solid #e8ecff;
     }
-    .defect-card:hover { 
-      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2); 
+
+    .defect-card:hover {
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
       transform: translateY(-2px);
     }
-    
-    .defect-header { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
+
+    .defect-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       background: linear-gradient(135deg, #667eea 0%, #5568d3 100%);
       color: white;
       padding: 14px 16px;
       gap: 12px;
     }
-    .defect-name { 
-      font-weight: 700; 
-      color: white; 
-      font-size: 1.05em; 
+
+    .defect-name {
+      font-weight: 700;
+      color: white;
+      font-size: 1.05em;
       flex: 1;
     }
+
     .severity-badge {
       display: inline-flex;
       align-items: center;
@@ -296,15 +440,15 @@
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.4);
     }
-    
+
     .defect-info {
       padding: 16px;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 16px;
     }
-    
-    .info-row { 
+
+    .info-row {
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -314,27 +458,29 @@
       border: 1px solid #e8ecff;
       transition: all 0.2s;
     }
+
     .info-row:hover {
       background: #f0f4ff;
       border-color: #667eea;
     }
-    
-    .info-label { 
-      font-weight: 600; 
-      color: #667eea; 
-      display: flex; 
-      align-items: center; 
+
+    .info-label {
+      font-weight: 600;
+      color: #667eea;
+      display: flex;
+      align-items: center;
       gap: 5px;
       font-size: 0.8em;
       text-transform: uppercase;
       letter-spacing: 0.3px;
     }
-    .info-value { 
-      color: #1a1a1a; 
+
+    .info-value {
+      color: #1a1a1a;
       font-weight: 700;
       font-size: 1.15em;
     }
-    
+
     .report-box {
       background: #f9f9f9;
       padding: 12px;
@@ -342,15 +488,26 @@
       margin-bottom: 12px;
       border-left: 3px solid #667eea;
     }
-    .report-title { font-weight: 600; color: #667eea; margin-bottom: 8px; font-size: 0.9em; }
-    .report-content { font-size: 0.85em; color: #555; line-height: 1.5; }
-    
+
+    .report-title {
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 8px;
+      font-size: 0.9em;
+    }
+
+    .report-content {
+      font-size: 0.85em;
+      color: #555;
+      line-height: 1.5;
+    }
+
     .empty-state {
       text-align: center;
       padding: 50px 20px;
       color: #999;
     }
-    
+
     .history-item {
       background: #f5f5f5;
       padding: 12px;
@@ -361,8 +518,17 @@
       justify-content: space-between;
       align-items: center;
     }
-    .history-info { flex: 1; }
-    .history-time { font-size: 0.8em; color: #999; margin-top: 4px; }
+
+    .history-info {
+      flex: 1;
+    }
+
+    .history-time {
+      font-size: 0.8em;
+      color: #999;
+      margin-top: 4px;
+    }
+
     .history-badge {
       padding: 5px 10px;
       border-radius: 4px;
@@ -371,6 +537,7 @@
       color: white;
       white-space: nowrap;
     }
+
     .live-panel {
       margin-top: 18px;
       padding: 14px;
@@ -378,9 +545,24 @@
       background: linear-gradient(135deg, #0f172a, #1e293b);
       color: #f8fafc;
     }
-    .live-panel h4 { margin-bottom: 6px; font-size: 1rem; }
-    .live-panel p { font-size: 0.85rem; color: #cbd5e1; margin-bottom: 10px; }
-    .stream-controls { display: flex; gap: 8px; margin-bottom: 10px; }
+
+    .live-panel h4 {
+      margin-bottom: 6px;
+      font-size: 1rem;
+    }
+
+    .live-panel p {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      margin-bottom: 10px;
+    }
+
+    .stream-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
     .btn-secondary {
       background: #475569;
       color: #f8fafc;
@@ -389,6 +571,7 @@
       padding: 8px 12px;
       cursor: pointer;
     }
+
     .stream-status {
       display: inline-block;
       padding: 6px 10px;
@@ -398,8 +581,17 @@
       background: rgba(56, 189, 248, 0.16);
       color: #bae6fd;
     }
-    .stream-status.error { background: rgba(248, 113, 113, 0.16); color: #fecaca; }
-    .stream-status.success { background: rgba(74, 222, 128, 0.16); color: #dcfce7; }
+
+    .stream-status.error {
+      background: rgba(248, 113, 113, 0.16);
+      color: #fecaca;
+    }
+
+    .stream-status.success {
+      background: rgba(74, 222, 128, 0.16);
+      color: #dcfce7;
+    }
+
     .stream-frame {
       border-radius: 12px;
       overflow: hidden;
@@ -410,8 +602,19 @@
       justify-content: center;
       border: 1px solid rgba(148, 163, 184, 0.25);
     }
-    .stream-frame img { width: 100%; height: auto; display: block; }
-    .stream-placeholder { color: #94a3b8; text-align: center; padding: 24px; }
+
+    .stream-frame img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .stream-placeholder {
+      color: #94a3b8;
+      text-align: center;
+      padding: 24px;
+    }
+
     .stream-log {
       margin-top: 10px;
       display: grid;
@@ -419,6 +622,7 @@
       max-height: 140px;
       overflow-y: auto;
     }
+
     .stream-log-item {
       padding: 8px 10px;
       border-radius: 8px;
@@ -426,44 +630,165 @@
       font-size: 0.8rem;
       color: #e2e8f0;
     }
-    
-    @media (max-width: 900px) {
-      .wrapper { grid-template-columns: 250px 1fr; gap: 10px; }
-      .sidebar { padding: 15px; }
-      .main { padding: 15px; }
+
+    /* VQA Styles */
+    .vqa-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
     }
-    
+
+    .vqa-card {
+      background: linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);
+      border-radius: 10px;
+      padding: 14px;
+      border: 1px solid #dfe7ff;
+      transition: all 0.3s;
+    }
+
+    .vqa-card:hover {
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .vqa-question {
+      font-weight: 700;
+      color: #667eea;
+      font-size: 0.9em;
+      margin-bottom: 8px;
+    }
+
+    .vqa-answer {
+      font-size: 0.85em;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    .vqa-form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .vqa-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 0.95em;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .vqa-input:focus {
+      border-color: #667eea;
+    }
+
+    .vqa-answer-box {
+      background: #f8fbff;
+      border-radius: 10px;
+      padding: 14px;
+      border: 1px solid #dfe7ff;
+      margin-bottom: 20px;
+    }
+
+    .vqa-chat-question {
+      font-size: 0.9em;
+      color: #555;
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      background: #e8ecff;
+      border-radius: 8px;
+    }
+
+    .vqa-chat-answer {
+      font-size: 0.95em;
+      color: #1a1a1a;
+      font-weight: 600;
+      padding: 8px 12px;
+      background: #667eea;
+      color: white;
+      border-radius: 8px;
+    }
+
+    .vqa-loading {
+      font-size: 0.9em;
+      color: #667eea;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .vqa-error {
+      font-size: 0.9em;
+      color: #d32f2f;
+      padding: 8px 12px;
+      background: #ffebee;
+      border-radius: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .wrapper {
+        grid-template-columns: 250px 1fr;
+        gap: 10px;
+      }
+
+      .sidebar {
+        padding: 15px;
+      }
+
+      .main {
+        padding: 15px;
+      }
+    }
+
     @media (max-width: 768px) {
-      .wrapper { grid-template-columns: 1fr; }
-      header h1 { font-size: 1.4em; }
-      .tabs { margin-bottom: 15px; }
-      .defect-info { grid-template-columns: 1fr; }
-      .sidebar { max-height: 240px; }
+      .wrapper {
+        grid-template-columns: 1fr;
+      }
+
+      header h1 {
+        font-size: 1.4em;
+      }
+
+      .tabs {
+        margin-bottom: 15px;
+      }
+
+      .defect-info {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        max-height: 240px;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <header>
-      <h1>🔍 Kiểm Tra Chất Lượng Sản Phẩm</h1>
+      <h1>Kiểm Tra Chất Lượng Sản Phẩm</h1>
       <p>Phát hiện lỗi bằng AI Vision</p>
     </header>
-    
+
     <div class="wrapper">
       <!-- SIDEBAR -->
       <div class="sidebar">
-        <h3>📸 Tải Lên Ảnh</h3>
-        
+        <h3>Tải Lên Ảnh</h3>
+
         <div class="upload-box" id="uploadBox">
           <div class="upload-icon">📷</div>
           <div class="upload-text">Kéo thả ảnh</div>
           <div class="upload-sub">hoặc nhấp để chọn</div>
         </div>
-        
+
         <input type="file" id="fileInput" accept="image/*">
         <img id="preview" alt="Preview">
         <div id="fileInfo"></div>
-        
+
         <div class="form-group">
           <label>Độ Tin Cậy</label>
           <input type="range" id="confidenceSlider" min="0" max="100" value="25" step="5">
@@ -471,18 +796,18 @@
             <span class="value-badge" id="confidenceValue">0.25</span>
           </div>
         </div>
-        
-        <button class="btn-primary" id="uploadBtn">🚀 Kiểm Tra</button>
+
+        <button class="btn-primary" id="uploadBtn">Kiểm Tra</button>
 
         <div class="live-panel">
-          <h4>🎞️ Conveyor Live</h4>
+          <h4>Conveyor Live</h4>
           <p>Giả lập luồng sản phẩm đang chạy trên băng chuyền.</p>
           <div class="stream-controls">
-            <button class="btn-primary" id="startConveyorBtn">▶️ Bắt đầu</button>
-            <button class="btn-secondary" id="stopConveyorBtn" disabled>⏹️ Dừng</button>
+            <button class="btn-primary" id="startConveyorBtn">Bắt đầu</button>
+            <button class="btn-secondary" id="stopConveyorBtn" disabled>Dừng</button>
           </div>
           <div class="stream-controls">
-            <button class="btn-secondary" id="selectVideoBtn">📹 Chọn video</button>
+            <button class="btn-secondary" id="selectVideoBtn">Chọn video</button>
           </div>
           <input type="file" id="videoInput" accept="video/*" style="display:none;">
           <div class="stream-status" id="videoFileName">Chưa có video</div>
@@ -495,20 +820,20 @@
 
         <div class="status" id="status"></div>
       </div>
-      
+
       <!-- MAIN -->
       <div class="main">
         <div class="tabs">
-          <button class="tab-btn active" data-tab="results">📊 Kết Quả</button>
-          <button class="tab-btn" data-tab="history">📜 Lịch Sử</button>
+          <button class="tab-btn active" data-tab="results">Kết Quả</button>
+          <button class="tab-btn" data-tab="history">Lịch Sử</button>
         </div>
-        
+
         <div class="tab-content active" id="results">
           <div id="resultsContainer" class="empty-state">
-            👆 Tải lên ảnh để xem kết quả
+            Tải lên ảnh để xem kết quả
           </div>
         </div>
-        
+
         <div class="tab-content" id="history">
           <div id="historyContainer" class="empty-state">
             Chưa có lịch sử kiểm tra
@@ -520,6 +845,7 @@
 
   <script src="js/api.js"></script>
   <script>
+    window.lastInspectionData = null;
     const uploadBox = document.getElementById('uploadBox');
     const fileInput = document.getElementById('fileInput');
     const preview = document.getElementById('preview');
@@ -536,16 +862,16 @@
     const conveyorFrame = document.getElementById('conveyorFrame');
     const conveyorLog = document.getElementById('conveyorLog');
     const streamStatus = document.getElementById('streamStatus');
-    
+
     let selectedFile = null;
     let selectedVideoFile = null;
     let conveyorTimer = null;
     let conveyorFrames = [];
     let conveyorIndex = 0;
     let conveyorRunning = false;
-    
+
     uploadBox.addEventListener('click', () => fileInput.click());
-    
+
     uploadBox.addEventListener('dragover', (e) => {
       e.preventDefault();
       uploadBox.classList.add('drag');
@@ -556,11 +882,11 @@
       uploadBox.classList.remove('drag');
       handleFile(e.dataTransfer.files[0]);
     });
-    
+
     fileInput.addEventListener('change', (e) => {
       if (e.target.files[0]) handleFile(e.target.files[0]);
     });
-    
+
     function handleFile(file) {
       if (!file) return;
       selectedFile = file;
@@ -569,30 +895,30 @@
         preview.src = e.target.result;
         preview.style.display = 'block';
         const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-        fileInfo.innerHTML = `<strong>${file.name}</strong><br>${sizeMB} MB`;
+        fileInfo.innerHTML = '<strong>' + file.name + '</strong><br>' + sizeMB + ' MB';
       };
       reader.readAsDataURL(file);
     }
-    
+
     confidenceSlider.addEventListener('input', (e) => {
       confidenceValue.textContent = (e.target.value / 100).toFixed(2);
     });
-    
+
     uploadBtn.addEventListener('click', async () => {
       if (!selectedFile) {
         showStatus('Vui lòng chọn ảnh', 'error');
         return;
       }
       uploadBtn.disabled = true;
-      showStatus('<span class="spinner"></span>Đang xử lý...', 'info');
+      showStatus('Đang xử lý...', 'info');
       try {
         const confidence = confidenceSlider.value / 100;
         const result = await apiClient.inspectImage(selectedFile, confidence);
         displayResults(result);
         saveHistory(result);
-        showStatus('✅ Kiểm tra thành công!', 'success');
+        showStatus('Kiểm tra thành công!', 'success');
       } catch (error) {
-        showStatus('❌ ' + error.message, 'error');
+        showStatus('Lỗi: ' + error.message, 'error');
       } finally {
         uploadBtn.disabled = false;
       }
@@ -600,27 +926,22 @@
 
     startConveyorBtn.addEventListener('click', async () => {
       if (conveyorRunning) return;
-
       if (selectedVideoFile) {
         await processSelectedVideo();
         return;
       }
-
       try {
         conveyorRunning = true;
         startConveyorBtn.disabled = true;
         stopConveyorBtn.disabled = false;
         setConveyorStatus('Đang tạo luồng live...', 'info');
-
         const confidence = confidenceSlider.value / 100;
         const payload = await apiClient.simulateConveyor(8, 800, confidence);
         conveyorFrames = payload.frames || [];
         conveyorIndex = 0;
-
         if (!conveyorFrames.length) {
           throw new Error('Không nhận được khung hình nào');
         }
-
         setConveyorStatus('Luồng live đang chạy', 'success');
         playNextConveyorFrame();
       } catch (error) {
@@ -646,7 +967,7 @@
 
     videoInput.addEventListener('change', (e) => {
       selectedVideoFile = e.target.files[0] || null;
-      videoFileName.textContent = selectedVideoFile ? `Video: ${selectedVideoFile.name}` : 'Chưa có video';
+      videoFileName.textContent = selectedVideoFile ? 'Video: ' + selectedVideoFile.name : 'Chưa có video';
       videoFileName.className = 'stream-status info';
     });
 
@@ -655,45 +976,33 @@
         setConveyorStatus('Vui lòng chọn video trước', 'error');
         return;
       }
-
       if (conveyorRunning) {
         conveyorRunning = false;
         clearTimeout(conveyorTimer);
         conveyorTimer = null;
       }
-
       startConveyorBtn.disabled = true;
       stopConveyorBtn.disabled = true;
       setConveyorStatus('Đang phân tích video...', 'info');
       conveyorFrame.innerHTML = '<div class="stream-placeholder">Đang xử lý video...</div>';
       conveyorLog.innerHTML = '';
-
       try {
         const confidence = confidenceSlider.value / 100;
         const result = await apiClient.processVideo(selectedVideoFile, confidence, 40, 5.0);
         const uniqueImages = result.unique_images_detected || 0;
-        const summaryText = `Video: ${result.video_name || selectedVideoFile.name} • ${uniqueImages} ảnh duy nhất • ${result.frames_inspected || 0} frame đã xử lý • ${result.defects_found || 0} ảnh có lỗi`;
-        
-        // Lưu kết quả để phát lại stream
         window.videoProcessingResult = result;
         window.conveyorVideoFrames = (result.logs || []).filter(log => log.saved_image_url);
         window.conveyorVideoIndex = 0;
-        console.log('processSelectedVideo: videoProcessingResult saved:', window.videoProcessingResult);
-        console.log('processSelectedVideo: conveyorVideoFrames saved:', window.conveyorVideoFrames);
-        
         const summaryItem = document.createElement('div');
         summaryItem.className = 'stream-log-item';
-        summaryItem.textContent = summaryText;
+        summaryItem.textContent = 'Video: ' + (result.video_name || selectedVideoFile.name) + ' - ' + uniqueImages + ' ảnh - ' + (result.defects_found || 0) + ' lỗi';
         conveyorLog.appendChild(summaryItem);
-
         (result.logs || []).slice(0, 8).forEach((log) => {
           const item = document.createElement('div');
           item.className = 'stream-log-item';
-          item.textContent = `Frame ${log.frame_index} (${log.timestamp}s): ${log.has_defect ? 'có lỗi' : 'đạt'} • ${log.predictions_count || 0} phát hiện`;
+          item.textContent = 'Frame ' + log.frame_index + ' (' + log.timestamp + 's): ' + (log.has_defect ? 'có lỗi' : 'đạt') + ' - ' + (log.predictions_count || 0) + ' phát hiện';
           conveyorLog.appendChild(item);
         });
-
-        // Bắt đầu phát video stream từ các frame đã xử lý
         if (window.conveyorVideoFrames.length > 0) {
           setConveyorStatus('Đang phát video stream...', 'success');
           conveyorRunning = true;
@@ -702,13 +1011,10 @@
         } else {
           setConveyorStatus('Không có frame nào được xử lý', 'error');
         }
-
-        // Hiển thị kết quả chi tiết trên màn hình chính
-        renderVideoResultsOnly(result); // Use renderVideoResultsOnly to avoid saving history again
+        renderVideoResultsOnly(result);
+        saveVideoHistory(result);
         switchTab('results');
-        setConveyorStatus(result.defects_found > 0 ? `Phát hiện ${result.defects_found} frame lỗi` : 'Video đạt tiêu chuẩn', result.defects_found > 0 ? 'error' : 'success');
-        
-        // Automatically start replay on main screen after processing
+        setConveyorStatus(result.defects_found > 0 ? 'Phát hiện ' + result.defects_found + ' frame lỗi' : 'Video đạt tiêu chuẩn', result.defects_found > 0 ? 'error' : 'success');
         if (window.conveyorVideoFrames.length > 0) {
           replayVideoStreamOnMain(result);
         }
@@ -721,16 +1027,10 @@
 
     function playVideoStream() {
       if (!conveyorRunning || !window.conveyorVideoFrames || !window.conveyorVideoFrames.length) return;
-      
       const frame = window.conveyorVideoFrames[window.conveyorVideoIndex % window.conveyorVideoFrames.length];
-      const imageUrl = `${apiClient.baseUrl}${frame.saved_image_url}`;
-      
-      conveyorFrame.innerHTML = `
-        <img src="${imageUrl}" alt="Frame ${frame.frame_index}" style="width: 100%; border-radius: 8px;">
-      `;
-
-      // Cập nhật log
-      const logText = `Frame ${frame.frame_index} (${frame.timestamp}s): ${frame.has_defect ? '⚠️ LỖI' : '✅ Đạt'} • ${frame.predictions_count || 0} phát hiện`;
+      const imageUrl = apiClient.baseUrl + frame.saved_image_url;
+      conveyorFrame.innerHTML = '<img src="' + imageUrl + '" alt="Frame ' + frame.frame_index + '" style="width: 100%; border-radius: 8px;">';
+      const logText = 'Frame ' + frame.frame_index + ' (' + frame.timestamp + 's): ' + (frame.has_defect ? 'LỖI' : 'Đạt') + ' - ' + (frame.predictions_count || 0) + ' phát hiện';
       const entries = conveyorLog.children;
       if (entries.length >= 6) {
         conveyorLog.removeChild(entries[0]);
@@ -740,17 +1040,18 @@
       logItem.textContent = logText;
       logItem.style.background = frame.has_defect ? 'rgba(239, 68, 68, 0.3)' : 'rgba(15, 23, 42, 0.65)';
       conveyorLog.appendChild(logItem);
-
       window.conveyorVideoIndex += 1;
-      conveyorTimer = setTimeout(playVideoStream, 500); // 500ms per frame for smooth playback
+      conveyorTimer = setTimeout(playVideoStream, 500);
     }
 
-    function setConveyorStatus(message, type = 'info') {
+    function setConveyorStatus(message, type) {
+      if (!type) type = 'info';
       streamStatus.textContent = message;
-      streamStatus.className = `stream-status ${type}`.trim();
+      streamStatus.className = 'stream-status ' + type;
     }
 
-    function formatDisplayValue(value, fallback = 'N/A') {
+    function formatDisplayValue(value, fallback) {
+      if (!fallback) fallback = 'N/A';
       if (value === null || value === undefined || value === '') return fallback;
       if (typeof value === 'number' || typeof value === 'boolean') return String(value);
       if (typeof value === 'string') return value;
@@ -761,16 +1062,13 @@
             return String(value[key]);
           }
         }
-        try {
-          return JSON.stringify(value);
-        } catch (error) {
-          return fallback;
-        }
+        try { return JSON.stringify(value); } catch (e) { return fallback; }
       }
       return String(value);
     }
 
-    function normalizeCount(value, fallback = 0) {
+    function normalizeCount(value, fallback) {
+      if (!fallback) fallback = 0;
       if (typeof value === 'number' && Number.isFinite(value)) return value;
       if (typeof value === 'string') {
         const parsed = Number(value);
@@ -789,154 +1087,254 @@
     function playNextConveyorFrame() {
       if (!conveyorRunning || !conveyorFrames.length) return;
       const frame = conveyorFrames[conveyorIndex % conveyorFrames.length];
-      conveyorFrame.innerHTML = `
-        <img src="${frame.image_url}" alt="Conveyor frame ${frame.frame_index}">
-      `;
-
+      conveyorFrame.innerHTML = '<img src="' + frame.image_url + '" alt="Conveyor frame ' + frame.frame_index + '">';
       const entries = conveyorLog.children;
       if (entries.length >= 6) {
         conveyorLog.removeChild(entries[0]);
       }
       const logItem = document.createElement('div');
       logItem.className = 'stream-log-item';
-      logItem.textContent = `Frame ${frame.frame_index}: ${frame.verdict} • ${frame.defect_count} defect(s)`;
+      logItem.textContent = 'Frame ' + frame.frame_index + ': ' + frame.verdict + ' - ' + frame.defect_count + ' defect(s)';
       conveyorLog.appendChild(logItem);
-
       conveyorIndex += 1;
       conveyorTimer = setTimeout(playNextConveyorFrame, 800);
     }
-    
+
+    // VQA: Ask a free-form question about the current image
+    function askVQAQuestion() {
+      const input = document.getElementById('vqaQuestionInput');
+      const answerContainer = document.getElementById('vqaAnswerContainer');
+      if (!input || !answerContainer) return;
+      const question = input.value.trim();
+      if (!question) return;
+      if (!selectedFile) {
+        answerContainer.innerHTML = '<div class="vqa-error">Vui lòng tải lên ảnh trước khi hỏi.</div>';
+        answerContainer.style.display = 'block';
+        return;
+      }
+      answerContainer.innerHTML = '<div class="vqa-loading"><span class="spinner"></span> Đang phân tích...</div>';
+      answerContainer.style.display = 'block';
+      apiClient.askVQA(selectedFile, question, window.lastInspectionData)
+        .then(result => {
+          const answer = result.answer || 'Không có câu trả lời';
+          answerContainer.innerHTML = '<div class="vqa-chat-question">🧑‍💻 Bạn: ' + question + '</div><div class="vqa-chat-answer">🤖 AI: ' + answer + '</div>';
+          input.value = '';
+        })
+        .catch(error => {
+          answerContainer.innerHTML = '<div class="vqa-error">❌ Lỗi: ' + error.message + '</div>';
+        });
+    }
+
+    function displayResults(data) {
+      window.lastInspectionData = data;
+      const container = document.getElementById('resultsContainer');
+      const predictions = data.predictions || [];
+      const result_image_url = data.result_image_url;
+      const report = data.report || {};
+      const vqa_quick_answers = data.vqa_quick_answers || {};
+      const total_defects = (typeof data.total_defects === 'number') ? data.total_defects : 0;
+      const imageUrl = resolveImageUrl(result_image_url);
+      const defectCount = normalizeCount(total_defects, predictions.length);
+      const passCount = defectCount > 0 ? 0 : 1;
+      let html = '';
+
+      if (report.verdict) {
+        const verdictMap = { PASS: 'verdict-pass', FLAG: 'verdict-flag', REJECT: 'verdict-reject' };
+        const rawVerdict = report.verdict;
+        const verdictStr = (rawVerdict && typeof rawVerdict === 'object') ? (rawVerdict.result || 'UNKNOWN') : (rawVerdict || 'UNKNOWN');
+        const vClass = verdictMap[verdictStr] || 'verdict-pass';
+        const vIcon = verdictStr === 'PASS' ? '✅' : (verdictStr === 'FLAG' ? '⚠️' : '❌');
+        const vDesc = (rawVerdict && typeof rawVerdict === 'object') ? (rawVerdict.reason || 'Kiểm tra hoàn thành') : 'Kiểm tra hoàn thành';
+        html += '<div class="verdict-badge ' + vClass + '">';
+        html += '<div class="verdict-icon">' + vIcon + '</div>';
+        html += '<div><div class="verdict-status">' + (verdictStr === 'REJECT' ? 'KHÔNG ĐẠT' : (verdictStr === 'FLAG' ? 'CẢNH BÁO' : 'ĐẠT')) + '</div>';
+        html += '<div class="verdict-desc">' + vDesc + '</div></div></div>';
+      }
+
+      html += '<div class="stats-grid">';
+      html += '<div class="stat-box"><div class="stat-label">Tổng Lỗi</div><div class="stat-value">' + defectCount + '</div></div>';
+      html += '<div class="stat-box" style="background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);"><div class="stat-label">Đạt</div><div class="stat-value">' + passCount + '</div></div>';
+      html += '</div>';
+
+      if (imageUrl) {
+        html += '<div class="image-section"><div class="image-caption">Ảnh Kết Quả Phát Hiện</div>';
+        html += '<img src="' + imageUrl + '" class="result-image" alt="Result" onerror="this.style.display=\'none\'"></div>';
+      }
+
+      if (predictions.length > 0) {
+        html += '<div class="section-title">Chi Tiết Lỗi Phát Hiện (Tổng: ' + predictions.length + ')</div>';
+        for (let i = 0; i < predictions.length; i++) {
+          const p = predictions[i];
+          let conf = p.confidence;
+          if (typeof conf === 'object' && conf.SCORE) conf = conf.SCORE / 100;
+          conf = ((conf || 0) * 100);
+          let sev = p.severity || 'NORMAL';
+          if (typeof sev === 'object') sev = sev.LEVEL || 'NORMAL';
+          sev = String(sev).toUpperCase().trim();
+          const sevColors = { HIGH: '#f44336', MEDIUM: '#ff9800', LOW: '#ffc107', NORMAL: '#4caf50', CRITICAL: '#c62828' };
+          const defectLabel = formatDisplayValue(p.defect_type || p.class_name || p.class, 'Lỗi');
+          html += '<div class="defect-card">';
+          html += '<div class="defect-header"><div class="defect-name">#' + (i + 1) + ' ' + (p.defect_type || 'Lỗi') + '</div>';
+          html += '<span class="severity-badge" style="background: ' + (sevColors[sev] || '#999') + ';">' + sev + '</span></div>';
+          html += '<div class="defect-info">';
+          html += '<div class="info-row"><span class="info-label">Độ Tin Cậy</span><span class="info-value">' + conf.toFixed(1) + '%</span></div>';
+          html += '<div class="info-row"><span class="info-label">Loại Lỗi</span><span class="info-value">' + defectLabel + '</span></div>';
+          html += '</div></div>';
+        }
+      } else if (total_defects === 0) {
+        html += '<div style="text-align: center; padding: 25px; background: #e8f5e9; border-radius: 8px; color: #4caf50; font-weight: 600; margin: 15px 0;">Không phát hiện lỗi</div>';
+      }
+
+      if (report.recommendations && report.recommendations.length > 0) {
+        html += '<div class="section-title">Khuyến Cáo</div><div class="report-box"><div class="report-content">';
+        for (let r = 0; r < report.recommendations.length; r++) {
+          html += '<div style="margin-bottom: 6px;">- ' + report.recommendations[r] + '</div>';
+        }
+        html += '</div></div>';
+      }
+
+      // VQA Quick Answers section
+      const vqaKeys = Object.keys(vqa_quick_answers);
+      if (vqaKeys.length > 0) {
+        const vqaLabels = { defect: 'Có lỗi không?', severity: 'Mức độ nghiêm trọng?', verdict: 'Kết luận?', position: 'Vị trí lỗi?', count: 'Số lượng lỗi?' };
+        html += '<div class="section-title">Hỏi & Đáp Về Ảnh</div><div class="vqa-grid">';
+        for (let k = 0; k < vqaKeys.length; k++) {
+          const key = vqaKeys[k];
+          const label = vqaLabels[key] || key;
+          const answer = vqa_quick_answers[key] || 'Không có câu trả lời';
+          html += '<div class="vqa-card"><div class="vqa-question">' + label + '</div><div class="vqa-answer">' + answer + '</div></div>';
+        }
+        html += '</div>';
+      }
+
+      // VQA Free-form Chat Box
+      html += '<div class="section-title">💬 Hỏi Thêm Về Ảnh</div>';
+      html += '<div class="vqa-form">';
+      html += '<input type="text" id="vqaQuestionInput" class="vqa-input" placeholder="Nhập câu hỏi của bạn..." onkeydown="if(event.key===\'Enter\') askVQAQuestion()">';
+      html += '<button class="btn-primary" id="vqaAskBtn" onclick="askVQAQuestion()" style="max-width: 100px; margin: 0;">Hỏi</button>';
+      html += '</div>';
+      html += '<div id="vqaAnswerContainer" class="vqa-answer-box" style="display: none;"></div>';
+
+      container.innerHTML = html || '<div class="empty-state">Không có dữ liệu</div>';
+      switchTab('results');
+    }
+
     function displayVideoResults(result) {
       const container = document.getElementById('resultsContainer');
       if (!container) return;
-
       const allFrames = result.logs || [];
       const defectLogs = allFrames.filter((log) => log.has_defect);
-      const goodFrames = allFrames.filter((log) => !log.has_defect && log.saved_image_url);
+      const frameImages = allFrames.filter(log => log.saved_image_url);
       const uniqueCount = normalizeCount(result.unique_images_detected, allFrames.length);
       const defectCount = normalizeCount(result.defects_found, defectLogs.length);
       const inspectedCount = normalizeCount(result.frames_inspected, allFrames.length);
       const passCount = Math.max(0, inspectedCount - defectCount);
-      const summaryText = `Video: ${result.video_name || 'unknown'} • ${uniqueCount} ảnh duy nhất • ${defectCount} ảnh có lỗi`;
 
-      // Build frame gallery HTML
-      let frameGalleryHtml = '';
-      if (allFrames.length > 0) {
-        const allWithImages = allFrames.filter(log => log.saved_image_url);
-        frameGalleryHtml = `
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px;">
-            ${allWithImages.map(log => {
-              const imgUrl = `${apiClient.baseUrl}${log.saved_image_url}`;
-              return `
-                <div style="background: #f8fbff; border-radius: 8px; overflow: hidden; border: ${log.has_defect ? '2px solid #f44336' : '1px solid #e0e0e0'}; cursor: pointer;" onclick="window.open('${imgUrl}', '_blank')">
-                  <img src="${imgUrl}" style="width: 100%; height: 120px; object-fit: cover; display: block;">
-                  <div style="padding: 6px 8px; font-size: 0.75em; background: ${log.has_defect ? '#ffebee' : '#f5f5f5'};">
-                    <div style="font-weight: 600; color: ${log.has_defect ? '#d32f2f' : '#333'};">Frame ${log.frame_index}</div>
-                    <div style="color: #666; margin-top: 2px;">${log.timestamp}s • ${log.predictions_count || 0} phát hiện</div>
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        `;
+      let html = '<div class="verdict-badge ' + (defectCount > 0 ? 'verdict-reject' : 'verdict-pass') + '">';
+      html += '<div class="verdict-icon">🎞️</div>';
+      html += '<div><div class="verdict-status">VIDEO INSPECTION</div>';
+      html += '<div class="verdict-desc">' + uniqueCount + ' ảnh duy nhất - ' + defectCount + ' ảnh có lỗi</div></div></div>';
+
+      html += '<div class="stats-grid">';
+      html += '<div class="stat-box"><div class="stat-label">Ảnh duy nhất</div><div class="stat-value">' + uniqueCount + '</div></div>';
+      html += '<div class="stat-box" style="background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);"><div class="stat-label">Ảnh đạt</div><div class="stat-value">' + passCount + '</div></div>';
+      html += '<div class="stat-box" style="background: linear-gradient(135deg, #f44336 0%, #c62828 100%);"><div class="stat-label">Ảnh có lỗi</div><div class="stat-value">' + defectCount + '</div></div>';
+      html += '</div>';
+
+      // Step 1: Frame Gallery
+      if (frameImages.length > 0) {
+        html += '<div class="section-title">Frame đã quét</div><div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px;">';
+        for (let i = 0; i < frameImages.length; i++) {
+          const log = frameImages[i];
+          const imgUrl = apiClient.baseUrl + log.saved_image_url;
+          html += '<div style="background: #f8fbff; border-radius: 8px; overflow: hidden; border: ' + (log.has_defect ? '2px solid #f44336' : '1px solid #e0e0e0') + '; cursor: pointer;" onclick="window.open(\'' + imgUrl + '\', \'_blank\')">';
+          html += '<img src="' + imgUrl + '" style="width: 100%; height: 120px; object-fit: cover; display: block;">';
+          html += '<div style="padding: 6px 8px; font-size: 0.75em; background: ' + (log.has_defect ? '#ffebee' : '#f5f5f5') + ';">';
+          html += '<div style="font-weight: 600; color: ' + (log.has_defect ? '#d32f2f' : '#333') + ';">Frame ' + log.frame_index + '</div>';
+          html += '<div style="color: #666; margin-top: 2px;">' + log.timestamp + 's - ' + (log.predictions_count || 0) + ' phát hiện</div>';
+          html += '</div></div>';
+        }
+        html += '</div>';
       }
 
-      // Build defect detail cards
-      let defectCardsHtml = '';
+      // Step 2: Defect Detail Cards with enriched predictions + report + VQA per frame
       if (defectLogs.length > 0) {
-        defectCardsHtml = defectLogs.map((log) => {
-          const imgUrl = log.saved_image_url ? `${apiClient.baseUrl}${log.saved_image_url}` : null;
-          return `
-            <div class="defect-card">
-              <div class="defect-header" onclick="${imgUrl ? `window.open('${imgUrl}', '_blank')` : ''}" style="cursor: ${imgUrl ? 'pointer' : 'default'};">
-                <div class="defect-name">⚠️ Frame ${log.frame_index} - Lỗi</div>
-                <span class="severity-badge" style="background:#f44336;">${log.predictions_count || 0} phát hiện</span>
-              </div>
-              <div class="defect-info">
-                <div class="info-row">
-                  <span class="info-label">⏱ Thời gian</span>
-                  <span class="info-value">${log.timestamp}s</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">📊 Số phát hiện</span>
-                  <span class="info-value">${log.predictions_count || 0}</span>
-                </div>
-                ${imgUrl ? `
-                <div style="grid-column: 1 / -1;">
-                  <img src="${imgUrl}" style="width: 100%; border-radius: 6px; border: 1px solid #e0e0e0; cursor: pointer;" onclick="window.open('${imgUrl}', '_blank')" alt="Defect frame ${log.frame_index}">
-                </div>` : ''}
-              </div>
-            </div>
-          `;
-        }).join('');
+        html += '<div class="section-title">Chi tiết lỗi</div>';
+        for (let d = 0; d < defectLogs.length; d++) {
+          const log = defectLogs[d];
+          const imgUrl = log.saved_image_url ? apiClient.baseUrl + log.saved_image_url : null;
+          const preds = log.predictions || [];
+          const logReport = log.report || {};
+
+          html += '<div class="defect-card">';
+          html += '<div class="defect-header"><div class="defect-name">Frame ' + log.frame_index + ' - Lỗi</div>';
+          html += '<span class="severity-badge" style="background:#f44336;">' + (log.predictions_count || 0) + ' phát hiện</span></div>';
+          html += '<div class="defect-info">';
+          html += '<div class="info-row"><span class="info-label">Thời gian</span><span class="info-value">' + log.timestamp + 's</span></div>';
+          html += '<div class="info-row"><span class="info-label">Số phát hiện</span><span class="info-value">' + (log.predictions_count || 0) + '</span></div>';
+
+          // Enriched predictions per frame
+          for (let p = 0; p < preds.length; p++) {
+            const pred = preds[p];
+            html += '<div class="info-row"><span class="info-label">Loại lỗi</span><span class="info-value">' + (pred.defect_type || pred.class_name || 'N/A') + '</span></div>';
+            if (pred.severity) {
+              const sevLevel = pred.severity.level || (typeof pred.severity === 'string' ? pred.severity : 'N/A');
+              html += '<div class="info-row"><span class="info-label">Mức độ</span><span class="info-value">' + sevLevel + '</span></div>';
+            }
+          }
+
+          // Report recommendations per frame
+          if (logReport.recommendations && logReport.recommendations.length > 0) {
+            html += '<div style="grid-column: 1 / -1;"><div class="report-box"><div class="report-title">Khuyến cáo</div><div class="report-content">';
+            for (let r = 0; r < logReport.recommendations.length; r++) {
+              html += '<div style="margin-bottom: 4px;">- ' + logReport.recommendations[r] + '</div>';
+            }
+            html += '</div></div></div>';
+          }
+
+          // VQA quick answers per frame
+          const vqaAnswers = log.vqa_quick_answers || {};
+          const vqaKeys = Object.keys(vqaAnswers);
+          if (vqaKeys.length > 0) {
+            const vqaLabels = { defect: 'Có lỗi không?', severity: 'Mức độ?', verdict: 'Kết luận?', position: 'Vị trí?', count: 'Số lượng?' };
+            html += '<div style="grid-column: 1 / -1;"><div class="vqa-grid" style="margin-bottom: 0;">';
+            for (let k = 0; k < vqaKeys.length; k++) {
+              const key = vqaKeys[k];
+              html += '<div class="vqa-card"><div class="vqa-question">' + (vqaLabels[key] || key) + '</div><div class="vqa-answer">' + (vqaAnswers[key] || 'N/A') + '</div></div>';
+            }
+            html += '</div></div>';
+          }
+
+          if (imgUrl) {
+            html += '<div style="grid-column: 1 / -1;"><img src="' + imgUrl + '" style="width: 100%; border-radius: 6px; border: 1px solid #e0e0e0; cursor: pointer;" onclick="window.open(\'' + imgUrl + '\', \'_blank\')" alt="Defect frame ' + log.frame_index + '"></div>';
+          }
+          html += '</div></div>';
+        }
+      } else {
+        html += '<div style="padding: 16px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;">Không phát hiện lỗi</div>';
       }
 
-      // Build replay button if we have frames with images
-      const frameImages = allFrames.filter(log => log.saved_image_url);
-      const replayBtnHtml = frameImages.length > 0 ? `
-        <button class="btn-primary" style="margin-bottom: 15px; max-width: 300px;" onclick="replayVideoStreamOnMain()">
-          ▶️ Xem lại video (${frameImages.length} frames)
-        </button>
-      ` : '';
+      // VQA Free-form Chat Box for video
+      html += '<div class="section-title">💬 Hỏi Thêm Về Ảnh</div>';
+      html += '<div class="vqa-form">';
+      html += '<input type="text" id="vqaQuestionInput" class="vqa-input" placeholder="Nhập câu hỏi của bạn..." onkeydown="if(event.key===\'Enter\') askVQAQuestion()">';
+      html += '<button class="btn-primary" id="vqaAskBtn" onclick="askVQAQuestion()" style="max-width: 100px; margin: 0;">Hỏi</button>';
+      html += '</div>';
+      html += '<div id="vqaAnswerContainer" class="vqa-answer-box" style="display: none;"></div>';
 
-      container.innerHTML = `
-        <div class="verdict-badge ${defectCount > 0 ? 'verdict-reject' : 'verdict-pass'}">
-          <div class="verdict-icon">🎞️</div>
-          <div>
-            <div class="verdict-status">VIDEO INSPECTION</div>
-            <div class="verdict-desc">${summaryText}</div>
-          </div>
-        </div>
-        <div class="stats-grid">
-          <div class="stat-box">
-            <div class="stat-label">Ảnh duy nhất</div>
-            <div class="stat-value">${uniqueCount}</div>
-          </div>
-          <div class="stat-box" style="background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);">
-            <div class="stat-label">Ảnh đạt</div>
-            <div class="stat-value">${passCount}</div>
-          </div>
-          <div class="stat-box" style="background: linear-gradient(135deg, #f44336 0%, #c62828 100%);">
-            <div class="stat-label">Ảnh có lỗi</div>
-            <div class="stat-value">${defectCount}</div>
-          </div>
-        </div>
-        ${replayBtnHtml}
-        <div id="mainVideoStreamContainer" style="margin: 12px 0 20px; min-height: 240px; background: #0b1220; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #dbe3f0;">
-          <div style="color: #94a3b8; text-align: center; padding: 18px;">Nhấn "Xem lại video" để phát frame lỗi và frame đã quét ở đây</div>
-        </div>
-        ${frameImages.length > 0 ? `
-          <div class="section-title">📹 Frame đã quét (click để xem)</div>
-          ${frameGalleryHtml}
-        ` : ''}
-        ${defectLogs.length > 0 ? `
-          <div class="section-title">⚠️ Chi tiết lỗi</div>
-          ${defectCardsHtml}
-        ` : '<div style="padding: 16px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;">✅ Không phát hiện lỗi</div>'}
-      `;
-      
-      // Save to history ONLY on initial processing (not on restore)
+      container.innerHTML = html;
       saveVideoHistory(result);
     }
-    
-      // Replay video stream on the small conveyor frame (sidebar)
-      function replayVideoStream() {
+
+    function replayVideoStream() {
       const result = window.videoProcessingResult;
-      console.log("replayVideoStream called. Current window.videoProcessingResult:", result);
-      if (!result) {
-        console.error("replayVideoStream: window.videoProcessingResult is null or undefined.");
-        return;
-      }
+      if (!result) return;
       const frames = (result.logs || []).filter(log => log.saved_image_url);
       if (frames.length === 0) return;
-      
-      // Stop current conveyor if running
       if (conveyorRunning) {
         conveyorRunning = false;
         clearTimeout(conveyorTimer);
       }
-      
-      // Set up replay
       window.conveyorVideoFrames = frames;
       window.conveyorVideoIndex = 0;
       conveyorRunning = true;
@@ -950,175 +1348,32 @@
     function resolveImageUrl(url) {
       if (!url) return '';
       if (/^https?:\/\//i.test(url)) return url;
-      return `${apiClient.baseUrl}/${url.replace(/^\/?/, '')}`;
+      return apiClient.baseUrl + '/' + url.replace(/^\//, '');
     }
-    
-    function displayResults(data) {
-      const container = document.getElementById('resultsContainer');
-      const { predictions = [], result_image_url, report = {}, vqa_quick_answers = {}, total_defects = 0 } = data;
-      const imageUrl = resolveImageUrl(result_image_url);
-      const defectCount = normalizeCount(total_defects, predictions.length);
-      const passCount = defectCount > 0 ? 0 : 1;
-      
-      let html = '';
-      
-      if (report.verdict) {
-        const verdictMap = {
-          'PASS': { class: 'verdict-pass', icon: '✅', label: 'ĐẠT' },
-          'FLAG': { class: 'verdict-flag', icon: '⚠️', label: 'CẢNH BÁO' },
-          'REJECT': { class: 'verdict-reject', icon: '❌', label: 'KHÔNG ĐẠT' }
-        };
-        const v = verdictMap[report.verdict] || verdictMap['PASS'];
-        // Fix: convert summary to string if it's an object
-        let summaryText = 'Kiểm tra hoàn thành';
-        if (report.summary) {
-          if (typeof report.summary === 'string') {
-            summaryText = report.summary;
-          } else if (typeof report.summary === 'object') {
-            summaryText = JSON.stringify(report.summary);
-          }
-        }
-        html += `
-          <div class="verdict-badge ${v.class}">
-            <div class="verdict-icon">${v.icon}</div>
-            <div>
-              <div class="verdict-status">${v.label}</div>
-              <div class="verdict-desc">${summaryText}</div>
-            </div>
-          </div>
-        `;
-      }
-      
-      if (total_defects !== undefined) {
-        html += `<div class="stats-grid">
-          <div class="stat-box">
-            <div class="stat-label">Tổng Lỗi</div>
-            <div class="stat-value">${defectCount}</div>
-          </div>
-          <div class="stat-box" style="background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);">
-            <div class="stat-label">Đạt</div>
-            <div class="stat-value">${passCount}</div>
-          </div>
-          ${report.confidence ? `<div class="stat-box">
-            <div class="stat-label">Độ Tin Cậy</div>
-            <div class="stat-value">${Math.round(report.confidence * 100)}%</div>
-          </div>` : ''}
-        </div>`;
-      }
-      
-      if (imageUrl) {
-        html += `
-          <div class="image-section">
-            <div class="image-caption">🖼️ Ảnh Kết Quả Phát Hiện</div>
-            <img src="${imageUrl}" class="result-image" alt="Result" onerror="this.style.display='none'">
-          </div>
-        `;
-      }
-      
-      if (predictions?.length > 0) {
-        html += '<div class="section-title">📌 Chi Tiết Lỗi Phát Hiện <span style="font-size: 0.85em; color: #999;">(Tổng: ' + predictions.length + ')</span></div>';
-        
-        // Helper to safely extract numeric values
-        const getNumVal = (val) => {
-          if (typeof val === 'number') return val;
-          if (typeof val === 'object' && val !== null) {
-            const v = val.value !== undefined ? val.value : val;
-            return Number(v) || 0;
-          }
-          return Number(val) || 0;
-        };
-        
-        predictions.forEach((p, idx) => {
-          let conf = p.confidence;
-          if (typeof conf === 'object' && conf.SCORE) conf = conf.SCORE / 100;
-          conf = ((conf || 0) * 100);
-          
-          let sev = p.severity || 'NORMAL';
-          if (typeof sev === 'object') sev = sev.LEVEL || 'NORMAL';
-          sev = String(sev).toUpperCase().trim();
-          
-          const sevColors = { 'HIGH': '#f44336', 'MEDIUM': '#ff9800', 'LOW': '#ffc107', 'NORMAL': '#4caf50', 'CRITICAL': '#c62828' };
-          
-          // Get area, x, y safely
-          const area = p.area ? getNumVal(p.area).toFixed(1) : 'N/A';
-          const xPos = p.x !== undefined ? getNumVal(p.x).toFixed(1) : 'N/A';
-          const yPos = p.y !== undefined ? getNumVal(p.y).toFixed(1) : 'N/A';
-          
-          let infoHtml = `
-                <div class="info-row">
-                  <span class="info-label">📊 Độ Tin Cậy</span>
-                  <span class="info-value">${conf.toFixed(1)}%</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">📏 Diện Tích</span>
-                  <span class="info-value">${area}${typeof area !== 'string' ? ' px²' : ''}</span>
-                </div>`;
-          
-          if (xPos !== 'N/A') {
-            infoHtml += `<div class="info-row">
-                  <span class="info-label">📍 Tọa Độ X</span>
-                  <span class="info-value">${xPos}</span>
-                </div>`;
-          }
-          if (yPos !== 'N/A') {
-            infoHtml += `<div class="info-row">
-                  <span class="info-label">📍 Tọa Độ Y</span>
-                  <span class="info-value">${yPos}</span>
-                </div>`;
-          }
-          const defectLabel = formatDisplayValue(p.defect_type || p.class_name || p.class, 'Lỗi');
-          if (defectLabel) {
-            infoHtml += `<div class="info-row">
-                  <span class="info-label">🏷️ Loại Lỗi</span>
-                  <span class="info-value">${defectLabel}</span>
-                </div>`;
-          }
-          
-          html += `
-            <div class="defect-card">
-              <div class="defect-header">
-                <div class="defect-name">#${idx + 1} ${p.defect_type || 'Lỗi'}</div>
-                <span class="severity-badge" style="background: ${sevColors[sev] || '#999'};">${sev}</span>
-              </div>
-              <div class="defect-info">
-                ${infoHtml}
-              </div>
-            </div>
-          `;
-        });
-      } else if (total_defects === 0) {
-        html += '<div style="text-align: center; padding: 25px; background: #e8f5e9; border-radius: 8px; color: #4caf50; font-weight: 600; margin: 15px 0;">✅ Không phát hiện lỗi</div>';
-      }
-      
-      if (report.recommendations?.length > 0) {
-        html += `<div class="section-title">💡 Khuyến Cáo</div>
-          <div class="report-box">
-            <div class="report-content">
-              ${report.recommendations.map(r => `<div style="margin-bottom: 6px;">• ${r}</div>`).join('')}
-            </div>
-          </div>`;
-      }
-      
-      container.innerHTML = html || '<div class="empty-state">Không có dữ liệu</div>';
-      switchTab('results');
-    }
-    
+
     function saveHistory(data) {
       let history = JSON.parse(localStorage.getItem('history') || '[]');
+      const fullDataToSave = data;
       history.unshift({
         type: 'image',
-        verdict: data.report?.verdict || 'UNKNOWN',
+        verdict: (data.report && data.report.verdict && typeof data.report.verdict === 'object') ? data.report.verdict.result : ((data.report && data.report.verdict) || 'UNKNOWN'),
         time: new Date().toLocaleString('vi-VN'),
         defects: data.total_defects || 0,
-        imageUrl: data.result_image_url || null
+        imageUrl: data.result_image_url || null,
+        fullData: fullDataToSave
       });
+      if (history.length > 10) {
+        for (let i = 10; i < history.length; i++) {
+          delete history[i].fullData;
+        }
+      }
       localStorage.setItem('history', JSON.stringify(history.slice(0, 50)));
       loadHistory();
     }
-    
+
     function saveVideoHistory(result) {
       let history = JSON.parse(localStorage.getItem('history') || '[]');
-      const defectLogs = (result.logs || []).filter(log => log.has_defect);
+      const defectLogs = (result.logs || []).filter(function (l) { return l.has_defect; });
       const firstDefectImage = defectLogs.length > 0 ? defectLogs[0].saved_image_url : null;
       history.unshift({
         type: 'video',
@@ -1134,72 +1389,55 @@
       localStorage.setItem('history', JSON.stringify(history.slice(0, 50)));
       loadHistory();
     }
-    
+
     function loadHistory() {
       const history = JSON.parse(localStorage.getItem('history') || '[]');
       const container = document.getElementById('historyContainer');
-      
       if (!history.length) {
         container.innerHTML = '<div class="empty-state">Chưa có lịch sử</div>';
         return;
       }
-      
       let html = '';
-      history.forEach((item, idx) => {
-        const vmap = { 'PASS': '#4caf50', 'FLAG': '#ff9800', 'REJECT': '#f44336' };
-        const lmap = { 'PASS': 'ĐẠT', 'FLAG': 'CẢNH BÁO', 'REJECT': 'KHÔNG ĐẠT' };
-        
+      for (let idx = 0; idx < history.length; idx++) {
+        const item = history[idx];
+        const vmap = { PASS: '#4caf50', FLAG: '#ff9800', REJECT: '#f44336' };
+        const lmap = { PASS: 'ĐẠT', FLAG: 'CẢNH BÁO', REJECT: 'KHÔNG ĐẠT' };
+        const rawVerdict = item.verdict;
+        const verdictStr = (rawVerdict && typeof rawVerdict === 'object') ? (rawVerdict.result || 'UNKNOWN') : (rawVerdict || 'UNKNOWN');
+
         if (item.type === 'video') {
-          // Video history item
-          const imgUrl = item.imageUrl ? `${apiClient.baseUrl}${item.imageUrl}` : null;
+          const imgUrl = item.imageUrl ? apiClient.baseUrl + item.imageUrl : null;
           const defectsCount = normalizeCount(item.defects, 0);
           const passCount = Math.max(0, normalizeCount(item.framesInspected, 0) - defectsCount);
-          html += `
-            <div class="history-item" style="flex-direction: column; align-items: stretch; cursor: pointer;" onclick="restoreVideoResult(${idx})">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <div class="history-info">
-                  <div style="font-weight: 600;">🎞️ ${item.videoName}</div>
-                  <div class="history-time">${item.time}</div>
-                  <div style="font-size: 0.8em; color: #667eea; margin-top: 3px;">${normalizeCount(item.uniqueImages, 0)} ảnh • ${passCount} đạt • ${defectsCount} lỗi</div>
-                </div>
-                <div class="history-badge" style="background: ${vmap[item.verdict] || '#999'};">
-                  ${item.verdict === 'REJECT' ? (item.type === 'video' ? `${defectsCount} LỖI` : 'KHÔNG ĐẠT') : lmap[item.verdict] || item.verdict}
-                </div>
-              </div>
-              ${imgUrl ? `<img src="${imgUrl}" style="width: 100%; max-height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #e0e0e0;">` : ''}
-            </div>
-          `;
+          html += '<div class="history-item" style="flex-direction: column; align-items: stretch; cursor: pointer;" onclick="restoreVideoResult(' + idx + ')">';
+          html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">';
+          html += '<div class="history-info"><div style="font-weight: 600;">' + item.videoName + '</div>';
+          html += '<div class="history-time">' + item.time + '</div>';
+          html += '<div style="font-size: 0.8em; color: #667eea; margin-top: 3px;">' + normalizeCount(item.uniqueImages, 0) + ' ảnh - ' + passCount + ' đạt - ' + defectsCount + ' lỗi</div></div>';
+          html += '<div class="history-badge" style="background: ' + (vmap[verdictStr] || '#999') + ';">' + (verdictStr === 'REJECT' ? defectsCount + ' LỖI' : (lmap[verdictStr] || verdictStr)) + '</div></div>';
+          if (imgUrl) html += '<img src="' + imgUrl + '" style="width: 100%; max-height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #e0e0e0;">';
+          html += '</div>';
         } else {
-          // Image history item
           const imgUrl = item.imageUrl ? resolveImageUrl(item.imageUrl) : null;
           const defectsCount = normalizeCount(item.defects, 0);
           const passCount = defectsCount > 0 ? 0 : 1;
-          html += `
-            <div class="history-item" style="flex-direction: column; align-items: stretch; cursor: pointer;" onclick="restoreImageResult(${idx})">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <div class="history-info">
-                  <div style="font-weight: 600;">📸 Kiểm tra #${idx + 1}</div>
-                  <div class="history-time">${item.time}</div>
-                  <div style="font-size: 0.8em; color: #667eea; margin-top: 3px;">Đạt: ${passCount} • Lỗi: ${defectsCount}</div>
-                </div>
-                <div class="history-badge" style="background: ${vmap[item.verdict] || '#999'};">
-                  ${item.verdict === 'REJECT' ? 'KHÔNG ĐẠT' : lmap[item.verdict] || item.verdict}
-                </div>
-              </div>
-              ${imgUrl ? `<img src="${imgUrl}" style="width: 100%; max-height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #e0e0e0;">` : ''}
-            </div>
-          `;
+          html += '<div class="history-item" style="flex-direction: column; align-items: stretch; cursor: pointer;" onclick="restoreImageResult(' + idx + ')">';
+          html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">';
+          html += '<div class="history-info"><div style="font-weight: 600;">Kiểm tra #' + (idx + 1) + '</div>';
+          html += '<div class="history-time">' + item.time + '</div>';
+          html += '<div style="font-size: 0.8em; color: #667eea; margin-top: 3px;">Đạt: ' + passCount + ' - Lỗi: ' + defectsCount + '</div></div>';
+          html += '<div class="history-badge" style="background: ' + (vmap[verdictStr] || '#999') + ';">' + (verdictStr === 'REJECT' ? 'KHÔNG ĐẠT' : (lmap[verdictStr] || verdictStr)) + '</div></div>';
+          if (imgUrl) html += '<img src="' + imgUrl + '" style="width: 100%; max-height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #e0e0e0;">';
+          html += '</div>';
         }
-      });
+      }
       container.innerHTML = html;
     }
-    
-    // Restore functions for history items (NOT save to history again)
+
     function restoreVideoResult(index) {
       const history = JSON.parse(localStorage.getItem('history') || '[]');
       const item = history[index];
       if (item && item.type === 'video' && item.logs) {
-        // Manually render video result WITHOUT calling displayVideoResults (which saves history)
         const result = {
           video_name: item.videoName,
           frames_inspected: item.framesInspected,
@@ -1207,220 +1445,194 @@
           unique_images_detected: item.uniqueImages,
           logs: item.logs
         };
-        // Save to window for replay
         window.videoProcessingResult = result;
-        window.conveyorVideoFrames = (result.logs || []).filter(log => log.saved_image_url);
+        window.conveyorVideoFrames = (result.logs || []).filter(function (l) { return l.saved_image_url; });
         window.conveyorVideoIndex = 0;
-        
-        // Render directly (bypass saveVideoHistory)
         renderVideoResultsOnly(result);
         switchTab('results');
       }
     }
-    
-    // Render video results without saving to history
+
     function renderVideoResultsOnly(result) {
       const container = document.getElementById('resultsContainer');
       if (!container) return;
-
       const allFrames = result.logs || [];
-      const defectLogs = allFrames.filter((log) => log.has_defect);
-      const frameImages = allFrames.filter(log => log.saved_image_url);
+      const defectLogs = allFrames.filter(function (l) { return l.has_defect; });
+      const frameImages = allFrames.filter(function (l) { return l.saved_image_url; });
       const uniqueCount = normalizeCount(result.unique_images_detected, allFrames.length);
       const defectCount = normalizeCount(result.defects_found, defectLogs.length);
       const inspectedCount = normalizeCount(result.frames_inspected, allFrames.length);
       const passCount = Math.max(0, inspectedCount - defectCount);
-      const summaryText = `Video: ${result.video_name || 'unknown'} • ${uniqueCount} ảnh duy nhất • ${defectCount} ảnh có lỗi`;
 
-      let frameGalleryHtml = '';
+      let html = '<div class="verdict-badge ' + (defectCount > 0 ? 'verdict-reject' : 'verdict-pass') + '">';
+      html += '<div class="verdict-icon">🎞️</div>';
+      html += '<div><div class="verdict-status">VIDEO INSPECTION</div>';
+      html += '<div class="verdict-desc">' + uniqueCount + ' ảnh duy nhất - ' + defectCount + ' ảnh có lỗi</div></div></div>';
+
+      html += '<div class="stats-grid">';
+      html += '<div class="stat-box"><div class="stat-label">Ảnh duy nhất</div><div class="stat-value">' + uniqueCount + '</div></div>';
+      html += '<div class="stat-box" style="background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);"><div class="stat-label">Ảnh đạt</div><div class="stat-value">' + passCount + '</div></div>';
+      html += '<div class="stat-box" style="background: linear-gradient(135deg, #f44336 0%, #c62828 100%);"><div class="stat-label">Ảnh có lỗi</div><div class="stat-value">' + defectCount + '</div></div>';
+      html += '</div>';
+
+      // Step 1: Frame Gallery first
       if (frameImages.length > 0) {
-        frameGalleryHtml = `
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px;">
-            ${frameImages.map(log => {
-              const imgUrl = `${apiClient.baseUrl}${log.saved_image_url}`;
-              return `
-                <div style="background: #f8fbff; border-radius: 8px; overflow: hidden; border: ${log.has_defect ? '2px solid #f44336' : '1px solid #e0e0e0'}; cursor: pointer;" onclick="window.open('${imgUrl}', '_blank')">
-                  <img src="${imgUrl}" style="width: 100%; height: 120px; object-fit: cover; display: block;">
-                  <div style="padding: 6px 8px; font-size: 0.75em; background: ${log.has_defect ? '#ffebee' : '#f5f5f5'};">
-                    <div style="font-weight: 600; color: ${log.has_defect ? '#d32f2f' : '#333'};">Frame ${log.frame_index}</div>
-                    <div style="color: #666; margin-top: 2px;">${log.timestamp}s • ${log.predictions_count || 0} phát hiện</div>
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        `;
+        html += '<div class="section-title">Frame đã quét</div><div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px;">';
+        for (let i = 0; i < frameImages.length; i++) {
+          const log = frameImages[i];
+          const imgUrl = apiClient.baseUrl + log.saved_image_url;
+          html += '<div style="background: #f8fbff; border-radius: 8px; overflow: hidden; border: ' + (log.has_defect ? '2px solid #f44336' : '1px solid #e0e0e0') + '; cursor: pointer;" onclick="window.open(\'' + imgUrl + '\', \'_blank\')">';
+          html += '<img src="' + imgUrl + '" style="width: 100%; height: 120px; object-fit: cover; display: block;">';
+          html += '<div style="padding: 6px 8px; font-size: 0.75em; background: ' + (log.has_defect ? '#ffebee' : '#f5f5f5') + ';">';
+          html += '<div style="font-weight: 600; color: ' + (log.has_defect ? '#d32f2f' : '#333') + ';">Frame ' + log.frame_index + '</div>';
+          html += '<div style="color: #666; margin-top: 2px;">' + log.timestamp + 's - ' + (log.predictions_count || 0) + ' phát hiện</div>';
+          html += '</div></div>';
+        }
+        html += '</div>';
       }
 
-      let defectCardsHtml = '';
+      // Step 2: Defect Detail Cards with enriched predictions + report + VQA
       if (defectLogs.length > 0) {
-        defectCardsHtml = defectLogs.map((log) => {
-          const imgUrl = log.saved_image_url ? `${apiClient.baseUrl}${log.saved_image_url}` : null;
-          return `
-            <div class="defect-card">
-              <div class="defect-header">
-                <div class="defect-name">⚠️ Frame ${log.frame_index} - Lỗi</div>
-                <span class="severity-badge" style="background:#f44336;">${log.predictions_count || 0} phát hiện</span>
-              </div>
-              <div class="defect-info">
-                <div class="info-row">
-                  <span class="info-label">⏱ Thời gian</span>
-                  <span class="info-value">${log.timestamp}s</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">📊 Số phát hiện</span>
-                  <span class="info-value">${log.predictions_count || 0}</span>
-                </div>
-                ${imgUrl ? `
-                <div style="grid-column: 1 / -1;">
-                  <img src="${imgUrl}" style="width: 100%; border-radius: 6px; border: 1px solid #e0e0e0; cursor: pointer;" onclick="window.open('${imgUrl}', '_blank')" alt="Defect frame ${log.frame_index}">
-                </div>` : ''}
-              </div>
-            </div>
-          `;
-        }).join('');
+        html += '<div class="section-title">Chi tiết lỗi</div>';
+        for (let d = 0; d < defectLogs.length; d++) {
+          const log = defectLogs[d];
+          const imgUrl = log.saved_image_url ? apiClient.baseUrl + log.saved_image_url : null;
+          const preds = log.predictions || [];
+          const logReport = log.report || {};
+
+          html += '<div class="defect-card">';
+          html += '<div class="defect-header"><div class="defect-name">Frame ' + log.frame_index + ' - Lỗi</div>';
+          html += '<span class="severity-badge" style="background:#f44336;">' + (log.predictions_count || 0) + ' phát hiện</span></div>';
+          html += '<div class="defect-info">';
+          html += '<div class="info-row"><span class="info-label">Thời gian</span><span class="info-value">' + log.timestamp + 's</span></div>';
+          html += '<div class="info-row"><span class="info-label">Số phát hiện</span><span class="info-value">' + (log.predictions_count || 0) + '</span></div>';
+
+          // Enriched predictions per frame
+          for (let p = 0; p < preds.length; p++) {
+            const pred = preds[p];
+            html += '<div class="info-row"><span class="info-label">Loại lỗi</span><span class="info-value">' + (pred.defect_type || pred.class_name || 'N/A') + '</span></div>';
+            if (pred.severity) {
+              const sevLevel = pred.severity.level || (typeof pred.severity === 'string' ? pred.severity : 'N/A');
+              html += '<div class="info-row"><span class="info-label">Mức độ</span><span class="info-value">' + sevLevel + '</span></div>';
+            }
+          }
+
+          // Report per frame
+          if (logReport.recommendations && logReport.recommendations.length > 0) {
+            html += '<div style="grid-column: 1 / -1;"><div class="report-box"><div class="report-title">Khuyến cáo</div><div class="report-content">';
+            for (let r = 0; r < logReport.recommendations.length; r++) {
+              html += '<div style="margin-bottom: 4px;">- ' + logReport.recommendations[r] + '</div>';
+            }
+            html += '</div></div></div>';
+          }
+
+          // VQA quick answers per frame
+          const vqaAnswers = log.vqa_quick_answers || {};
+          const vqaKeys = Object.keys(vqaAnswers);
+          if (vqaKeys.length > 0) {
+            const vqaLabels = { defect: 'Có lỗi không?', severity: 'Mức độ?', verdict: 'Kết luận?', position: 'Vị trí?', count: 'Số lượng?' };
+            html += '<div style="grid-column: 1 / -1;"><div class="vqa-grid" style="margin-bottom: 0;">';
+            for (let k = 0; k < vqaKeys.length; k++) {
+              const key = vqaKeys[k];
+              html += '<div class="vqa-card"><div class="vqa-question">' + (vqaLabels[key] || key) + '</div><div class="vqa-answer">' + (vqaAnswers[key] || 'N/A') + '</div></div>';
+            }
+            html += '</div></div>';
+          }
+
+          if (imgUrl) {
+            html += '<div style="grid-column: 1 / -1;"><img src="' + imgUrl + '" style="width: 100%; border-radius: 6px; border: 1px solid #e0e0e0; cursor: pointer;" onclick="window.open(\'' + imgUrl + '\', \'_blank\')" alt="Defect frame ' + log.frame_index + '"></div>';
+          }
+          html += '</div></div>';
+        }
+      } else {
+        html += '<div style="padding: 16px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;">Không phát hiện lỗi</div>';
       }
 
-      const replayBtnHtml = frameImages.length > 0 ? `
-        <button class="btn-primary" style="margin-bottom: 15px; max-width: 300px;" onclick="replayVideoStreamOnMain()">
-          ▶️ Xem lại video (${frameImages.length} frames)
-        </button>
-      ` : '';
+      // VQA Free-form Chat Box for video
+      html += '<div class="section-title">💬 Hỏi Thêm Về Ảnh</div>';
+      html += '<div class="vqa-form">';
+      html += '<input type="text" id="vqaQuestionInput" class="vqa-input" placeholder="Nhập câu hỏi của bạn..." onkeydown="if(event.key===\'Enter\') askVQAQuestion()">';
+      html += '<button class="btn-primary" id="vqaAskBtn" onclick="askVQAQuestion()" style="max-width: 100px; margin: 0;">Hỏi</button>';
+      html += '</div>';
+      html += '<div id="vqaAnswerContainer" class="vqa-answer-box" style="display: none;"></div>';
 
-      container.innerHTML = `
-        <div class="verdict-badge ${defectCount > 0 ? 'verdict-reject' : 'verdict-pass'}">
-          <div class="verdict-icon">🎞️</div>
-          <div>
-            <div class="verdict-status">VIDEO INSPECTION</div>
-            <div class="verdict-desc">${summaryText}</div>
-          </div>
-        </div>
-        <div class="stats-grid">
-          <div class="stat-box">
-            <div class="stat-label">Ảnh duy nhất</div>
-            <div class="stat-value">${uniqueCount}</div>
-          </div>
-          <div class="stat-box" style="background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);">
-            <div class="stat-label">Ảnh đạt</div>
-            <div class="stat-value">${passCount}</div>
-          </div>
-          <div class="stat-box" style="background: linear-gradient(135deg, #f44336 0%, #c62828 100%);">
-            <div class="stat-label">Ảnh có lỗi</div>
-            <div class="stat-value">${defectCount}</div>
-          </div>
-        </div>
-        ${replayBtnHtml}
-        ${frameImages.length > 0 ? `
-          <div class="section-title">📹 Frame đã quét (click để xem)</div>
-          ${frameGalleryHtml}
-        ` : ''}
-        ${defectLogs.length > 0 ? `
-          <div class="section-title">⚠️ Chi tiết lỗi</div>
-          ${defectCardsHtml}
-        ` : '<div style="padding: 16px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;">✅ Không phát hiện lỗi</div>'}
-      `;
+      container.innerHTML = html || '<div class="empty-state">Không có dữ liệu</div>';
     }
-    
-    // Function to replay video stream on the main content area
+
+    // Replay on main area
     let mainVideoReplayTimer = null;
     let mainVideoReplayIndex = 0;
-    function replayVideoStreamOnMain(result = null) {
+    function replayVideoStreamOnMain(result) {
+      if (!result) result = window.videoProcessingResult;
       const mainContainer = document.getElementById('mainVideoStreamContainer');
       if (!mainContainer) return;
-
-      const activeResult = result || window.videoProcessingResult;
-      console.log('replayVideoStreamOnMain called. Current result:', activeResult);
-      if (!activeResult) {
-        mainContainer.innerHTML = "<p style='color:#94a3b8; text-align:center;'>Chưa có video để xem lại.</p>";
+      if (!result) {
+        mainContainer.innerHTML = '<p style="color:#94a3b8; text-align:center;">Chưa có video để xem lại.</p>';
         return;
       }
-
-      const frames = (activeResult.logs || []).filter(log => log.saved_image_url);
+      const frames = (result.logs || []).filter(function (l) { return l.saved_image_url; });
       if (frames.length === 0) {
-        mainContainer.innerHTML = "<p style='color:#94a3b8; text-align:center;'>Không có frame ảnh để phát lại.</p>";
+        mainContainer.innerHTML = '<p style="color:#94a3b8; text-align:center;">Không có frame ảnh để phát lại.</p>';
         return;
       }
-
       mainVideoReplayIndex = 0;
       function playNextMainVideoFrame() {
-        if (mainVideoReplayIndex >= frames.length) {
-          mainVideoReplayIndex = 0; // Loop the video
-        }
+        if (mainVideoReplayIndex >= frames.length) mainVideoReplayIndex = 0;
         const frame = frames[mainVideoReplayIndex];
-        const imageUrl = `${apiClient.baseUrl}${frame.saved_image_url}`;
-
-        mainContainer.innerHTML = `
-          <img src="${imageUrl}" alt="Frame ${frame.frame_index}" style="width: 100%; border-radius: 12px; border: 1px solid #e0e0e0;">
-          <div style="text-align: center; margin-top: 10px; font-size: 0.9em; color: #555;">Đang phát Frame ${frame.frame_index} (${frame.timestamp}s)</div>
-        `;
-
+        const imageUrl = apiClient.baseUrl + frame.saved_image_url;
+        mainContainer.innerHTML = '<img src="' + imageUrl + '" alt="Frame ' + frame.frame_index + '" style="width: 100%; border-radius: 12px; border: 1px solid #e0e0e0;"><div style="text-align: center; margin-top: 10px; font-size: 0.9em; color: #555;">Đang phát Frame ' + frame.frame_index + ' (' + frame.timestamp + 's)</div>';
         mainVideoReplayIndex++;
-        mainVideoReplayTimer = setTimeout(playNextMainVideoFrame, 500); // 500ms per frame
+        mainVideoReplayTimer = setTimeout(playNextMainVideoFrame, 500);
       }
-      // Clear any existing replay before starting new one
       if (mainVideoReplayTimer) clearTimeout(mainVideoReplayTimer);
       playNextMainVideoFrame();
-    }
-
-    function replayVideoStream() {
-      replayVideoStreamOnMain();
     }
 
     function restoreImageResult(index) {
       const history = JSON.parse(localStorage.getItem('history') || '[]');
       const item = history[index];
       if (item && item.type === 'image') {
+        if (item.fullData) {
+          displayResults(item.fullData);
+          return;
+        }
         const imgUrl = item.imageUrl ? resolveImageUrl(item.imageUrl) : null;
         const defectCount = normalizeCount(item.defects, 0);
         const passCount = defectCount > 0 ? 0 : 1;
         const container = document.getElementById('resultsContainer');
-        container.innerHTML = `
-          <div class="verdict-badge ${item.verdict === 'PASS' ? 'verdict-pass' : item.verdict === 'REJECT' ? 'verdict-reject' : 'verdict-flag'}">
-            <div class="verdict-icon">📸</div>
-            <div>
-              <div class="verdict-status">${item.verdict === 'PASS' ? 'ĐẠT' : item.verdict === 'REJECT' ? 'KHÔNG ĐẠT' : 'CẢNH BÁO'}</div>
-              <div class="verdict-desc">Kiểm tra lúc ${item.time}</div>
-            </div>
-          </div>
-          <div class="stats-grid">
-            <div class="stat-box">
-              <div class="stat-label">Tổng Lỗi</div>
-              <div class="stat-value">${defectCount}</div>
-            </div>
-            <div class="stat-box" style="background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);">
-              <div class="stat-label">Đạt</div>
-              <div class="stat-value">${passCount}</div>
-            </div>
-          </div>
-          ${imgUrl ? `
-            <div class="image-section">
-              <div class="image-caption">🖼️ Ảnh Kết Quả</div>
-              <img src="${imgUrl}" class="result-image" alt="Result">
-            </div>
-          ` : ''}
-        `;
+        let html = '<div class="verdict-badge verdict-pass"><div class="verdict-icon">📸</div>';
+        html += '<div><div class="verdict-status">KẾT QUẢ</div><div class="verdict-desc">Kiểm tra lúc ' + item.time + '</div></div></div>';
+        html += '<div class="stats-grid">';
+        html += '<div class="stat-box"><div class="stat-label">Tổng Lỗi</div><div class="stat-value">' + defectCount + '</div></div>';
+        html += '<div class="stat-box" style="background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);"><div class="stat-label">Đạt</div><div class="stat-value">' + passCount + '</div></div>';
+        html += '</div>';
+        if (imgUrl) {
+          html += '<div class="image-section"><div class="image-caption">Ảnh Kết Quả</div><img src="' + imgUrl + '" class="result-image" alt="Result"></div>';
+        }
+        container.innerHTML = html;
         switchTab('results');
       }
     }
-    
+
     function showStatus(msg, type) {
       status.innerHTML = msg;
-      status.className = `status show status-${type}`;
-      if (type === 'success') setTimeout(() => status.classList.remove('show'), 3000);
+      status.className = 'status show status-' + type;
+      if (type === 'success') setTimeout(function () { status.classList.remove('show'); }, 3000);
     }
-    
+
     function switchTab(tabName) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+      document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+      document.querySelectorAll('.tab-content').forEach(function (t) { t.classList.remove('active'); });
+      document.querySelector('[data-tab="' + tabName + '"]').classList.add('active');
       document.getElementById(tabName).classList.add('active');
     }
-    
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+
+    document.querySelectorAll('.tab-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () { switchTab(btn.dataset.tab); });
     });
-    
+
     loadHistory();
   </script>
 </body>
+
 </html>
