@@ -91,8 +91,7 @@ class InspectionReportService:
             },
             "position_analysis": {
                 "defect_zones": position_counts,
-                "most_affected_zone": max(position_counts, key=position_counts.get)
-                if position_counts else "none",
+                "most_affected_zone": max(position_counts, key=position_counts.get) if position_counts else "none",
             },
             "verdict": {
                 "result": verdict,

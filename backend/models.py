@@ -16,4 +16,4 @@ class InspectionLog(Base):
     has_defect = Column(Boolean, default=False)
     predictions = Column(JSON, nullable=True)  # List of boxes/polygons
     saved_image_path = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
