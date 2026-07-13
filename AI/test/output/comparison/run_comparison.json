@@ -1,5 +1,17 @@
 [
   {
+    "run_name": "segmentation",
+    "best_pt_path": "runs\\segment\\AI\\train\\runs\\ai-segmentation\\segmentation\\weights\\best.pt",
+    "box_map50": 0.7809540832113808,
+    "box_map50_95": 0.4880547093371955,
+    "mask_map50": 0.7719822125761069,
+    "mask_map50_95": 0.41589019366939395,
+    "box_precision": 0.8701458072027647,
+    "box_recall": 0.778697827489412,
+    "mask_precision": 0.8632676951993504,
+    "mask_recall": 0.7766924745518811
+  },
+  {
     "run_name": "segmentation-smoke",
     "best_pt_path": "runs\\segment\\AI\\train\\runs\\ai-segmentation\\segmentation-smoke\\weights\\best.pt",
     "box_map50": 3.2037590773173857e-07,
