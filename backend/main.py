@@ -2,6 +2,8 @@ import base64
 import os
 import shutil
 import uuid
+import json
+from typing import Optional
 from contextlib import asynccontextmanager
 import cv2
 from PIL import Image
@@ -270,7 +272,7 @@ async def caption(file: UploadFile = File(...)):
             os.remove(temp_path)
 
 @app.post("/vqa")
-async def vqa(file: UploadFile = File(...), question: str = Form(...)):
+async def vqa(file: UploadFile = File(...), question: str = Form(...), context: Optional[str] = Form(None)):
     file_ext = os.path.splitext(file.filename)[1]
     temp_filename = f"{uuid.uuid4()}{file_ext}"
     temp_path = UPLOAD_DIR / temp_filename
@@ -281,7 +283,15 @@ async def vqa(file: UploadFile = File(...), question: str = Form(...)):
     try:
         img = Image.open(temp_path).convert("RGB")
         vqa_service: VQAService = app.state.vqa
-        result_answer = vqa_service.answer_question(img, question)
+        
+        inspection_context = None
+        if context:
+            try:
+                inspection_context = json.loads(context)
+            except Exception:
+                pass
+                
+        result_answer = vqa_service.answer_question(img, question, inspection_context=inspection_context)
         
         return {
             "status": "success",
@@ -407,6 +417,24 @@ async def process_video(
                 has_defect = is_defect_frame(predictions)
                 saved_image_path = None
                 
+                # Enrich predictions with FeatureExtraction + InspectionReport
+                frame_height, frame_width = frame.shape[:2]
+                enriched_predictions = predictions
+                report = None
+                if predictions:
+                    try:
+                        extractor = FeatureExtractor()
+                        enriched_predictions = extractor.extract(predictions, frame_width, frame_height)
+                        reporter = InspectionReportService()
+                        report = reporter.generate_report(
+                            enriched_predictions,
+                            filename=file.filename,
+                            image_size=(frame_width, frame_height)
+                        )
+                    except Exception as e:
+                        print(f"Warning: Enrich failed for frame {frame_idx}: {e}")
+                        enriched_predictions = predictions
+                
                 # Save annotated frame
                 if annotated_bgr is not None:
                     saved_filename = f"video_{temp_filename}_scene_{unique_images_found}.jpg"
@@ -423,7 +451,7 @@ async def process_video(
                     frame_index=frame_idx,
                     timestamp=timestamp_sec,
                     has_defect=has_defect,
-                    predictions=predictions,
+                    predictions=enriched_predictions,
                     saved_image_path=saved_image_path
                 )
                 db.add(log_entry)
@@ -435,8 +463,9 @@ async def process_video(
                     "frame_index": frame_idx,
                     "timestamp": timestamp_sec,
                     "has_defect": has_defect,
-                    "predictions_count": len(predictions),
-                    "predictions": predictions,
+                    "predictions_count": len(enriched_predictions),
+                    "predictions": enriched_predictions,
+                    "report": report,
                     "saved_image_url": saved_image_path,
                     "is_first_frame": True  # Flag: this is the first frame of the scene
                 })
