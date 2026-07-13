@@ -1,4 +1,4 @@
-path: C:/Users/LENOVO/Downloads/ThiGiacMayTinh/ThiGiacMayTinh/AI/preprocess/output
+path: AI/preprocess/output
 train: images/train
 val: images/val
 test: images/test
