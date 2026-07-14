@@ -12,3 +12,5 @@ runs/segment/AI/train/runs/ai-segmentation/segmentation-yolo11n-07-07-7h/log.txt
 AI/test/output/evaluation_report.md
 runs/segment/AI/train/runs/ai-segmentation/temp01/log.txt
 log/vietnamese_localization_log.md
+AI/defect_type/output
+AI/defect_type/RUN2_COMMANDS.md

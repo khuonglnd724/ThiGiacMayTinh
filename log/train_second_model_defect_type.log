@@ -1,0 +1,20 @@
+2026-07-15 - Implemented second-stage defect-type training pipeline:
+- Added `AI/defect_type/__init__.py`.
+- Added `AI/defect_type/model_utils.py` with torchvision model builders, checkpoint loader, and ROI inference helpers.
+- Added `AI/defect_type/dataset.py` with preprocessed-sample discovery, ROI cropping, and defect-type dataset support.
+- Added `AI/defect_type/prepare_dataset.py` to export cropped ROI samples and a manifest from the preprocessing output.
+- Added `AI/defect_type/train.py` to train the second-stage classifier with grouped source-sample splitting, class weighting, and checkpoint export.
+- Updated `backend/config.py` to expose a defect-type model path.
+- Added `backend/services/defect_type_service.py` to load the second-stage classifier and infer defect type from a crop or detection ROI.
+- Updated `backend/services/__init__.py` to export `DefectTypeService`.
+- Validation:
+  - `AI/defect_type/prepare_dataset.py --limit 10` succeeded and exported ROI crops under `AI/defect_type/output/`.
+  - `AI/defect_type/train.py --smoke-test --sample-limit 40` produced `runs/classify/AI/defect-type/mobilenet_v3_small-composite/weights/best.pt` and `last.pt`.
+  - Short real train on the grouped split completed with `epochs: 3` and saved `training_report.json`.
+- Reported short-train best validation metrics:
+  - accuracy: `0.3497`
+  - top-2 accuracy: `0.4118`
+  - macro F1: `0.1138`
+- Notes:
+  - The defect-type classifier is class-aware via composite labels like `bottle__broken_large`.
+  - The backend service is wired to the default checkpoint path under `runs/classify/AI/defect-type/mobilenet_v3_small-composite/weights/best.pt`.

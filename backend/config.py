@@ -19,6 +19,7 @@ DATABASE_URL = f"sqlite:///{DATABASE_PATH.as_posix()}"
 WORKSPACE_ROOT = BASE_DIR.parent
 YOLO_MODEL_PATH = WORKSPACE_ROOT / "runs" / "segment" / "AI" / "train" / "runs" / "ai-segmentation" / "segmentation-yolo11n-27-6-23h" / "weights" / "best.pt"
 FALLBACK_YOLO_PATH = WORKSPACE_ROOT / "yolo11n-seg.pt"
+DEFECT_TYPE_MODEL_PATH = WORKSPACE_ROOT / "runs" / "classify" / "AI" / "defect-type" / "resnet18-global" / "weights" / "best.pt"
 
 def get_yolo_path() -> str:
     """Returns the absolute path to the best trained YOLO weights or fallback."""
@@ -28,3 +29,10 @@ def get_yolo_path() -> str:
         return str(FALLBACK_YOLO_PATH.resolve())
     # If not found, return pretrained string for online download
     return "yolo11n-seg.pt"
+
+
+def get_defect_type_path() -> str:
+    """Returns the absolute path to the defect-type classifier checkpoint if available."""
+    if DEFECT_TYPE_MODEL_PATH.exists():
+        return str(DEFECT_TYPE_MODEL_PATH.resolve())
+    return str(DEFECT_TYPE_MODEL_PATH.resolve())
