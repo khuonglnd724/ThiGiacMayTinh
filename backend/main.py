@@ -32,8 +32,9 @@ except ImportError:
     from services.feature_extraction import FeatureExtractor
     from services.inspection_report import InspectionReportService
 
+
 def is_defect_frame(predictions):
-    """Treat a frame as defective when the model returns any meaningful defect-like prediction."""
+    """Xác định frame có bị lỗi không dựa trên kết quả dự đoán từ mô hình."""
     if not predictions:
         return False
 
@@ -60,7 +61,7 @@ def is_defect_frame(predictions):
 
 
 def build_simulated_conveyor_frames(frames=8, interval_ms=800, confidence=0.25):
-    """Build a deterministic batch of synthetic conveyor inspection frames."""
+    """Xây dựng một loạt các frame kiểm tra băng chuyền mô phỏng."""
     generated_frames = []
 
     for frame_index in range(1, frames + 1):
@@ -89,11 +90,11 @@ def build_simulated_conveyor_frames(frames=8, interval_ms=800, confidence=0.25):
   <circle cx="510" cy="125" r="16" fill="#34d399" />
   <rect x="80" y="90" width="180" height="30" rx="12" fill="#334155" />
   <rect x="300" y="90" width="180" height="30" rx="12" fill="#334155" />
-  <text x="120" y="110" fill="#f8fafc" font-family="Arial" font-size="18">Conveyor</text>
-  <text x="340" y="110" fill="#f8fafc" font-family="Arial" font-size="18">Inspection</text>
+  <text x="120" y="110" fill="#f8fafc" font-family="Arial" font-size="18">Băng chuyền</text>
+  <text x="340" y="110" fill="#f8fafc" font-family="Arial" font-size="18">Kiểm tra</text>
   {defect_markers}
   <rect x="420" y="220" width="120" height="24" rx="8" fill="#f59e0b" />
-  <text x="80" y="300" fill="#f8fafc" font-family="Arial" font-size="24">Frame {frame_index} • {verdict} • {confidence:.2f} confidence</text>
+  <text x="80" y="300" fill="#f8fafc" font-family="Arial" font-size="24">Frame {frame_index} • {verdict} • {confidence:.2f} độ tin cậy</text>
 </svg>'''
 
         encoded_svg = base64.b64encode(svg.encode("utf-8")).decode("ascii")
@@ -111,30 +112,30 @@ def build_simulated_conveyor_frames(frames=8, interval_ms=800, confidence=0.25):
     return generated_frames
 
 
-# Lifespan context manager for startup/shutdown events
+# Quản lý vòng đời cho sự kiện khởi động/tắt máy chủ
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize DB tables
+    # Khởi tạo bảng trong CSDL
     Base.metadata.create_all(bind=engine)
     
-    # Initialize and cache AI services in app state
-    print("Initializing AI services...")
+    # Khởi tạo và lưu trữ dịch vụ AI trong app state
+    print("Đang khởi tạo dịch vụ AI...")
     app.state.yolo = YOLOService()
     app.state.caption = CaptionService()
     app.state.vqa = VQAService()
-    print("AI services initialized successfully.")
+    print("Dịch vụ AI khởi tạo thành công.")
     yield
-    # Cleanup if needed
-    print("Shutting down API server...")
+    # Dọn dẹp nếu cần
+    print("Đang tắt máy chủ API...")
 
 app = FastAPI(
-    title="Computer Vision Quality Control API",
-    description="Backend API for defect detection, segmentation, image captioning, and VQA.",
+    title="API Kiểm Tra Chất Lượng Bằng Thị Giác Máy Tính",
+    description="API Backend cho phát hiện lỗi, phân vùng, chú thích ảnh và VQA.",
     version="1.0.0",
     lifespan=lifespan
 )
 
-# CORS middleware to connect with Frontend
+# Middleware CORS để kết nối với Frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -143,34 +144,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static folder to serve result images
+# Gắn thư mục static để phục vụ ảnh kết quả
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 @app.get("/")
 async def root():
-    return {"message": "Computer Vision Quality Control API is active"}
+    return {"message": "API Kiểm Tra Chất Lượng Bằng Thị Giác Máy Tính đang hoạt động"}
 
 @app.get("/conveyor/simulate")
 async def simulate_conveyor(frames: int = 8, interval_ms: int = 800, confidence: float = 0.25):
-    """Return a simulated stream of conveyor inspection frames for the live UI."""
-    safe_frame_count = max(1, min(int(frames), 12))
-    safe_interval = max(200, int(interval_ms))
-    safe_confidence = max(0.05, min(float(confidence), 0.99))
+    """Trả về luồng mô phỏng các frame kiểm tra băng chuyền cho giao diện live."""
+    so_frame_an_toan = max(1, min(int(frames), 12))
+    khoang_cach_an_toan = max(200, int(interval_ms))
+    do_tin_cay_an_toan = max(0.05, min(float(confidence), 0.99))
 
     return {
         "status": "success",
         "mode": "simulated_live",
-        "interval_ms": safe_interval,
+        "interval_ms": khoang_cach_an_toan,
         "frames": build_simulated_conveyor_frames(
-            frames=safe_frame_count,
-            interval_ms=safe_interval,
-            confidence=safe_confidence,
+            frames=so_frame_an_toan,
+            interval_ms=khoang_cach_an_toan,
+            confidence=do_tin_cay_an_toan,
         ),
     }
 
 @app.post("/detect")
 async def detect(file: UploadFile = File(...), conf: float = 0.25):
-    # Save uploaded file
+    """Phát hiện đối tượng trong ảnh (chỉ bounding box, không phân vùng)."""
+    # Lưu file tải lên
     file_ext = os.path.splitext(file.filename)[1]
     temp_filename = f"{uuid.uuid4()}{file_ext}"
     temp_path = UPLOAD_DIR / temp_filename
@@ -179,16 +181,16 @@ async def detect(file: UploadFile = File(...), conf: float = 0.25):
         shutil.copyfileobj(file.file, buffer)
         
     try:
-        # Load image
+        # Đọc ảnh
         img = Image.open(temp_path).convert("RGB")
         
-        # Run YOLO detection
+        # Chạy YOLO detection
         yolo_service: YOLOService = app.state.yolo
         predictions, annotated_bgr = yolo_service.predict(img, conf=conf, task="detect")
         
         result_url = None
         if annotated_bgr is not None:
-            # Save annotated image
+            # Lưu ảnh đã chú thích
             result_filename = f"detect_{temp_filename}"
             result_path = RESULTS_DIR / result_filename
             cv2.imwrite(str(result_path), annotated_bgr)
@@ -201,15 +203,16 @@ async def detect(file: UploadFile = File(...), conf: float = 0.25):
             "result_image_url": result_url
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Inference error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Lỗi chạy mô hình AI: {str(e)}")
     finally:
-        # Cleanup temp file
+        # Xóa file tạm
         if temp_path.exists():
             os.remove(temp_path)
 
 @app.post("/segment")
 async def segment(file: UploadFile = File(...), conf: float = 0.25):
-    # Save uploaded file
+    """Phân vùng đối tượng trong ảnh (phát hiện + mặt nạ)."""
+    # Lưu file tải lên
     file_ext = os.path.splitext(file.filename)[1]
     temp_filename = f"{uuid.uuid4()}{file_ext}"
     temp_path = UPLOAD_DIR / temp_filename
@@ -218,16 +221,16 @@ async def segment(file: UploadFile = File(...), conf: float = 0.25):
         shutil.copyfileobj(file.file, buffer)
         
     try:
-        # Load image
+        # Đọc ảnh
         img = Image.open(temp_path).convert("RGB")
         
-        # Run YOLO segmentation
+        # Chạy YOLO segmentation
         yolo_service: YOLOService = app.state.yolo
         predictions, annotated_bgr = yolo_service.predict(img, conf=conf, task="segment")
         
         result_url = None
         if annotated_bgr is not None:
-            # Save annotated image
+            # Lưu ảnh đã chú thích
             result_filename = f"segment_{temp_filename}"
             result_path = RESULTS_DIR / result_filename
             cv2.imwrite(str(result_path), annotated_bgr)
@@ -240,14 +243,15 @@ async def segment(file: UploadFile = File(...), conf: float = 0.25):
             "result_image_url": result_url
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Inference error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Lỗi chạy mô hình AI: {str(e)}")
     finally:
-        # Cleanup temp file
+        # Xóa file tạm
         if temp_path.exists():
             os.remove(temp_path)
 
 @app.post("/caption")
 async def caption(file: UploadFile = File(...)):
+    """Tạo chú thích cho ảnh."""
     file_ext = os.path.splitext(file.filename)[1]
     temp_filename = f"{uuid.uuid4()}{file_ext}"
     temp_path = UPLOAD_DIR / temp_filename
@@ -266,13 +270,14 @@ async def caption(file: UploadFile = File(...)):
             "caption": result_caption
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Caption generation error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Lỗi tạo chú thích: {str(e)}")
     finally:
         if temp_path.exists():
             os.remove(temp_path)
 
 @app.post("/vqa")
 async def vqa(file: UploadFile = File(...), question: str = Form(...), context: Optional[str] = Form(None)):
+    """Hỏi đáp trực quan về ảnh (Visual Question Answering)."""
     file_ext = os.path.splitext(file.filename)[1]
     temp_filename = f"{uuid.uuid4()}{file_ext}"
     temp_path = UPLOAD_DIR / temp_filename
@@ -300,35 +305,35 @@ async def vqa(file: UploadFile = File(...), question: str = Form(...), context: 
             "answer": result_answer
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"VQA error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Lỗi VQA: {str(e)}")
     finally:
         if temp_path.exists():
             os.remove(temp_path)
 
 def detect_scene_change(frame1, frame2, threshold=5.0):
     """
-    Detect if there is a significant scene change between two frames.
-    Uses TWO methods for robustness:
-    1. Mean Squared Error (pixel difference) - phát hiện thay đổi pixel rõ rệt
-    2. Histogram comparison (Chi-square) - cho ảnh cùng tông màu
+    Phát hiện sự thay đổi cảnh giữa hai frame.
+    Sử dụng HAI phương pháp để tăng độ chính xác:
+    1. Sai số bình phương trung bình (MSE) - phát hiện thay đổi pixel rõ rệt
+    2. So sánh biểu đồ màu (Chi-square) - cho ảnh cùng tông màu
     
-    Returns True if a new scene/image appears.
-    For video composed of stitched images, this detects when a new image appears.
+    Trả về True nếu có cảnh/ảnh mới xuất hiện.
+    Với video ghép từ nhiều ảnh, phương pháp này phát hiện khi ảnh mới xuất hiện.
     """
     if frame1 is None or frame2 is None:
         return True
     
     h, w = frame1.shape[:2]
     
-    # Method 1: MSE (Mean Squared Error) - nhạy với thay đổi pixel
+    # Phương pháp 1: MSE (Sai số bình phương trung bình) - nhạy với thay đổi pixel
     diff_pixels = cv2.absdiff(frame1, frame2)
     mse = float((diff_pixels ** 2).sum()) / (h * w * 3)
     
-    # If MSE > 10, definitely a scene change (2 ảnh khác nhau có MSE > 10-20)
+    # Nếu MSE > 10, chắc chắn có thay đổi cảnh (2 ảnh khác nhau có MSE > 10-20)
     if mse > 10.0:
         return True
     
-    # Method 2: Histogram Chi-square - cho ảnh cùng tông màu nhưng bố cục khác
+    # Phương pháp 2: So sánh biểu đồ Chi-square - cho ảnh cùng tông màu nhưng bố cục khác
     gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
     gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
     
@@ -352,28 +357,28 @@ async def process_video(
     db: Session = Depends(get_db)
 ):
     """
-    Uploads a video (composed of stitched product images), detects scene changes 
-    to process only unique frames, runs YOLO segmentation, logs results to DB.
+    Tải lên video (gồm nhiều ảnh sản phẩm ghép lại), phát hiện thay đổi cảnh
+    để chỉ xử lý các frame duy nhất, chạy YOLO segmentation, ghi log vào CSDL.
     
-    Uses scene change detection to avoid processing duplicate frames 
-    (same image appearing multiple times in a slideshow video).
+    Sử dụng phát hiện thay đổi cảnh để tránh xử lý các frame trùng lặp
+    (cùng một ảnh xuất hiện nhiều lần trong video dạng trình chiếu).
     """
     file_ext = os.path.splitext(file.filename)[1]
     temp_filename = f"{uuid.uuid4()}{file_ext}"
     video_path = UPLOAD_DIR / temp_filename
     
-    # Save uploaded video
+    # Lưu video tải lên
     with video_path.open("wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
         
     try:
         cap = cv2.VideoCapture(str(video_path))
         if not cap.isOpened():
-            raise HTTPException(status_code=400, detail="Cannot open video file.")
+            raise HTTPException(status_code=400, detail="Không thể mở file video.")
             
         fps = cap.get(cv2.CAP_PROP_FPS)
         if fps <= 0:
-            fps = 30.0  # Fallback
+            fps = 30.0  # Giá trị mặc định
             
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         frame_idx = 0
@@ -384,7 +389,7 @@ async def process_video(
         unique_images_found = 0
         last_processed_predictions = None
         last_processed_has_defect = False
-        scene_first_frame = None  # Track first frame of current scene
+        scene_first_frame = None  # Theo dõi frame đầu tiên của cảnh hiện tại
         
         yolo_service: YOLOService = app.state.yolo
         
@@ -393,31 +398,31 @@ async def process_video(
             if not ret:
                 break
             
-            # --- SCENE CHANGE DETECTION ---
-            # Compare with FIRST frame of current scene (not previous frame)
-            # This handles fade transitions correctly
+            # --- PHÁT HIỆN THAY ĐỔI CẢNH ---
+            # So sánh với Frame ĐẦU TIÊN của cảnh hiện tại (không phải frame trước đó)
+            # Điều này xử lý chính xác các hiệu ứng chuyển cảnh mờ dần
             is_new_scene = (scene_first_frame is None) or detect_scene_change(scene_first_frame, frame, threshold=scene_threshold)
             
             if is_new_scene:
-                # This is a unique image/frame
+                # Đây là ảnh/frame duy nhất
                 unique_images_found += 1
                 
                 if inspected_count >= max_frames_to_inspect:
                     break
                 
-                # Update first frame of current scene
+                # Cập nhật frame đầu tiên của cảnh hiện tại
                 scene_first_frame = frame.copy()
                 
                 inspected_count += 1
                 timestamp_sec = round(frame_idx / fps, 2)
                 
-                # Predict on the frame using YOLO (CHỈ 1 LẦN cho mỗi ảnh)
+                # Dự đoán trên frame bằng YOLO (CHỈ 1 LẦN cho mỗi ảnh)
                 predictions, annotated_bgr = yolo_service.predict(frame, conf=conf, task="segment")
                 
                 has_defect = is_defect_frame(predictions)
                 saved_image_path = None
                 
-                # Enrich predictions with FeatureExtraction + InspectionReport
+                # Làm giàu dự đoán với FeatureExtraction + InspectionReport
                 frame_height, frame_width = frame.shape[:2]
                 enriched_predictions = predictions
                 report = None
@@ -432,10 +437,10 @@ async def process_video(
                             image_size=(frame_width, frame_height)
                         )
                     except Exception as e:
-                        print(f"Warning: Enrich failed for frame {frame_idx}: {e}")
+                        print(f"Cảnh báo: Thất bại khi bổ sung thông tin ngữ cảnh cho frame {frame_idx}: {e}")
                         enriched_predictions = predictions
                 
-                # Save annotated frame
+                # Lưu frame đã chú thích
                 if annotated_bgr is not None:
                     saved_filename = f"video_{temp_filename}_scene_{unique_images_found}.jpg"
                     saved_path = RESULTS_DIR / saved_filename
@@ -445,7 +450,7 @@ async def process_video(
                 if has_defect:
                     defects_found += 1
                 
-                # Save to DB (only 1 record per unique image)
+                # Lưu vào CSDL (chỉ 1 bản ghi cho mỗi ảnh duy nhất)
                 log_entry = InspectionLog(
                     video_name=file.filename,
                     frame_index=frame_idx,
@@ -467,13 +472,13 @@ async def process_video(
                     "predictions": enriched_predictions,
                     "report": report,
                     "saved_image_url": saved_image_path,
-                    "is_first_frame": True  # Flag: this is the first frame of the scene
+                    "is_first_frame": True  # Đánh dấu: đây là frame đầu tiên của cảnh
                 })
                 
                 last_processed_predictions = predictions
                 last_processed_has_defect = has_defect
             
-            # Skip duplicate frames entirely (no log, no YOLO)
+            # Bỏ qua các frame trùng lặp (không log, không YOLO)
             frame_idx += 1
             
         cap.release()
@@ -491,15 +496,15 @@ async def process_video(
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Video processing failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Xử lý video thất bại: {str(e)}")
     finally:
-        # Cleanup temp video file to avoid storage bloat
+        # Xóa file video tạm để tránh đầy bộ nhớ
         if video_path.exists():
             os.remove(video_path)
 
 @app.get("/logs")
 async def get_logs(limit: int = 100, skip: int = 0, db: Session = Depends(get_db)):
-    """Retrieves previous inspection logs from database."""
+    """Lấy nhật ký kiểm tra từ cơ sở dữ liệu."""
     logs = db.query(InspectionLog).order_by(InspectionLog.created_at.desc()).offset(skip).limit(limit).all()
     return {
         "status": "success",
@@ -520,20 +525,22 @@ async def get_logs(limit: int = 100, skip: int = 0, db: Session = Depends(get_db
     }
 
 @app.post("/inspect")
-async def inspect(file: UploadFile = File(...), conf: float = 0.25):
+async def inspect(file: UploadFile = File(...), conf: float = 0.25, db: Session = Depends(get_db)):
     """
-    Full inspection pipeline:
-      1. YOLO segmentation
-      2. Feature Extraction (defect type, area, position, size, severity)
-      3. Inspection Report (rule-based verdict & recommendations)
-      4. VQA context integration
+    Quy trình kiểm tra đầy đủ:
+      1. Phân vùng YOLO
+      2. Trích xuất đặc trưng (loại lỗi, diện tích, vị trí, kích thước, mức độ)
+      3. Báo cáo kiểm tra (kết luận & khuyến cáo dựa trên quy tắc)
+      4. Tích hợp ngữ cảnh VQA
+      5. Lưu kết quả vào database inspection_logs
 
-    Follows the flow:
-      Image -> YOLO11-seg -> Detection+Segmentation
-      -> Feature Extraction -> JSON Inspection
-      -> Inspection Report + VQA Engine -> Final Response
+    Luồng xử lý:
+      Ảnh -> YOLO11-seg -> Phát hiện + Phân vùng
+      -> Trích xuất đặc trưng -> Kiểm tra JSON
+      -> Báo cáo kiểm tra + VQA Engine -> Phản hồi cuối cùng
+      -> Lưu log vào database
     """
-    # Save uploaded file
+    # Lưu file tải lên
     file_ext = os.path.splitext(file.filename)[1]
     temp_filename = f"{uuid.uuid4()}{file_ext}"
     temp_path = UPLOAD_DIR / temp_filename
@@ -542,19 +549,19 @@ async def inspect(file: UploadFile = File(...), conf: float = 0.25):
         shutil.copyfileobj(file.file, buffer)
 
     try:
-        # Load image
+        # Đọc ảnh
         img = Image.open(temp_path).convert("RGB")
         img_width, img_height = img.size
 
-        # Step 1: YOLO segmentation
+        # Bước 1: Phân vùng YOLO
         yolo_service: YOLOService = app.state.yolo
         predictions, annotated_bgr = yolo_service.predict(img, conf=conf, task="segment")
 
-        # Step 2: Feature Extraction
+        # Bước 2: Trích xuất đặc trưng
         extractor = FeatureExtractor()
         enriched_predictions = extractor.extract(predictions, img_width, img_height)
 
-        # Save annotated image
+        # Lưu ảnh đã chú thích
         result_url = None
         if annotated_bgr is not None:
             result_filename = f"inspect_{temp_filename}"
@@ -562,7 +569,7 @@ async def inspect(file: UploadFile = File(...), conf: float = 0.25):
             cv2.imwrite(str(result_path), annotated_bgr)
             result_url = f"/static/results/{result_filename}"
 
-        # Step 3: Inspection Report
+        # Bước 3: Báo cáo kiểm tra
         reporter = InspectionReportService()
         report = reporter.generate_report(
             enriched_predictions,
@@ -570,22 +577,36 @@ async def inspect(file: UploadFile = File(...), conf: float = 0.25):
             image_size=(img_width, img_height)
         )
 
-        # Step 4: VQA context (pre-built answers for common questions)
+        # Bước 4: Ngữ cảnh VQA (câu trả lời sẵn cho các câu hỏi phổ biến)
         vqa_service: VQAService = app.state.vqa
         vqa_context = {
             "enriched_predictions": enriched_predictions,
             "report": report,
         }
-        # Pre-answer common questions for quick access
+        # Trả lời trước các câu hỏi phổ biến để truy cập nhanh
         common_questions = {
-            "defect": vqa_service.answer_question(img, "Is there any defect?", vqa_context),
-            "severity": vqa_service.answer_question(img, "What is the severity?", vqa_context),
-            "verdict": vqa_service.answer_question(img, "What is the verdict?", vqa_context),
-            "position": vqa_service.answer_question(img, "Where is the defect?", vqa_context),
-            "count": vqa_service.answer_question(img, "How many defects?", vqa_context),
+            "defect": vqa_service.answer_question(img, "Có lỗi gì không?", vqa_context),
+            "severity": vqa_service.answer_question(img, "Mức độ nghiêm trọng thế nào?", vqa_context),
+            "verdict": vqa_service.answer_question(img, "Kết luận là gì?", vqa_context),
+            "position": vqa_service.answer_question(img, "Lỗi ở vị trí nào?", vqa_context),
+            "count": vqa_service.answer_question(img, "Có bao nhiêu lỗi?", vqa_context),
         }
 
-        # Final Response: enriched predictions + report + VQA
+        # Bước 5: Lưu kết quả vào database
+        has_defect = len(enriched_predictions) > 0
+        log_entry = InspectionLog(
+            video_name=file.filename,  # Dùng filename làm tên ảnh
+            frame_index=0,
+            timestamp=0.0,
+            has_defect=has_defect,
+            predictions=enriched_predictions,
+            saved_image_path=result_url
+        )
+        db.add(log_entry)
+        db.commit()
+        db.refresh(log_entry)
+
+        # Phản hồi cuối cùng: dự đoán đã làm giàu + báo cáo + VQA + log_id
         return {
             "status": "success",
             "filename": file.filename,
@@ -595,16 +616,16 @@ async def inspect(file: UploadFile = File(...), conf: float = 0.25):
             "result_image_url": result_url,
             "report": report,
             "vqa_quick_answers": common_questions,
+            "log_id": log_entry.id,
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Inspection failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Kiểm tra thất bại: {str(e)}")
     finally:
-        # Cleanup temp file
+        # Xóa file tạm
         if temp_path.exists():
             os.remove(temp_path)
 
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
-

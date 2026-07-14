@@ -631,6 +631,71 @@
       color: #e2e8f0;
     }
 
+    /* VQA per defect styles */
+    .vqa-per-defect {
+      grid-column: 1 / -1;
+      margin-top: 8px;
+      padding: 12px;
+      background: #f0f4ff;
+      border-radius: 8px;
+      border: 1px solid #dfe7ff;
+    }
+
+    .vqa-per-defect .vqa-input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .vqa-per-defect .vqa-input-row input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 0.85em;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .vqa-per-defect .vqa-input-row input:focus {
+      border-color: #667eea;
+    }
+
+    .vqa-per-defect .vqa-input-row button {
+      max-width: 80px;
+      margin: 0;
+      padding: 8px 12px;
+      font-size: 0.85em;
+      flex-shrink: 0;
+    }
+
+    .vqa-per-defect .vqa-answer {
+      font-size: 0.85em;
+      color: #333;
+      padding: 8px 12px;
+      background: white;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      line-height: 1.5;
+    }
+
+    .vqa-per-defect .vqa-loading {
+      font-size: 0.85em;
+      color: #667eea;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .vqa-per-defect .vqa-error {
+      font-size: 0.85em;
+      color: #d32f2f;
+      padding: 8px 12px;
+      background: #ffebee;
+      border-radius: 6px;
+    }
+
     /* VQA Styles */
     .vqa-grid {
       display: grid;
@@ -1084,6 +1149,44 @@
       return fallback;
     }
 
+    function collectRecommendations(report, predictions) {
+      const recommendations = [];
+      const seen = new Set();
+
+      function pushRecommendation(text) {
+        const normalized = String(text || '').trim();
+        if (!normalized || seen.has(normalized)) return;
+        seen.add(normalized);
+        recommendations.push(normalized);
+      }
+
+      function addFromPrediction(prediction) {
+        if (!prediction || typeof prediction !== 'object') return;
+        if (prediction.recommendation) pushRecommendation(prediction.recommendation);
+        if (prediction.severity && typeof prediction.severity === 'object' && prediction.severity.recommendation) {
+          pushRecommendation(prediction.severity.recommendation);
+        }
+      }
+
+      if (Array.isArray(predictions)) {
+        for (let i = 0; i < predictions.length; i++) addFromPrediction(predictions[i]);
+      }
+
+      if (report && Array.isArray(report.defect_details)) {
+        for (let i = 0; i < report.defect_details.length; i++) addFromPrediction(report.defect_details[i]);
+      }
+
+      if (recommendations.length > 0) {
+        return recommendations;
+      }
+
+      if (report && Array.isArray(report.recommendations)) {
+        for (let i = 0; i < report.recommendations.length; i++) pushRecommendation(report.recommendations[i]);
+      }
+
+      return recommendations;
+    }
+
     function playNextConveyorFrame() {
       if (!conveyorRunning || !conveyorFrames.length) return;
       const frame = conveyorFrames[conveyorIndex % conveyorFrames.length];
@@ -1169,10 +1272,19 @@
           if (typeof conf === 'object' && conf.SCORE) conf = conf.SCORE / 100;
           conf = ((conf || 0) * 100);
           let sev = p.severity || 'NORMAL';
-          if (typeof sev === 'object') sev = sev.LEVEL || 'NORMAL';
+          if (typeof sev === 'object') sev = sev.level || sev.LEVEL || 'NORMAL';
           sev = String(sev).toUpperCase().trim();
           const sevColors = { HIGH: '#f44336', MEDIUM: '#ff9800', LOW: '#ffc107', NORMAL: '#4caf50', CRITICAL: '#c62828' };
-          const defectLabel = formatDisplayValue(p.defect_type || p.class_name || p.class, 'Lỗi');
+          const DEFECT_VN = {
+            'scratch': 'Vết xước', 'dent': 'Vết lõm', 'crack': 'Vết nứt',
+            'chip': 'Mẻ', 'bubble': 'Bọt khí', 'contamination': 'Dị vật',
+            'break': 'Gãy/Vỡ', 'deform': 'Biến dạng', 'spot': 'Đốm',
+            'metal_nut': 'Đai ốc', 'screw': 'Ốc vít', 'bottle': 'Chai',
+            'cable': 'Cáp', 'surface': 'Bề mặt', 'product': 'Sản phẩm',
+            'defect': 'Lỗi'
+          };
+          const rawType = p.defect_type || p.class_name || p.class || '';
+          const defectLabel = DEFECT_VN[rawType.toLowerCase()] || rawType || 'Lỗi';
           html += '<div class="defect-card">';
           html += '<div class="defect-header"><div class="defect-name">#' + (i + 1) + ' ' + (p.defect_type || 'Lỗi') + '</div>';
           html += '<span class="severity-badge" style="background: ' + (sevColors[sev] || '#999') + ';">' + sev + '</span></div>';
@@ -1185,26 +1297,13 @@
         html += '<div style="text-align: center; padding: 25px; background: #e8f5e9; border-radius: 8px; color: #4caf50; font-weight: 600; margin: 15px 0;">Không phát hiện lỗi</div>';
       }
 
-      if (report.recommendations && report.recommendations.length > 0) {
+      const recommendations = collectRecommendations(report, predictions);
+      if (recommendations.length > 0) {
         html += '<div class="section-title">Khuyến Cáo</div><div class="report-box"><div class="report-content">';
-        for (let r = 0; r < report.recommendations.length; r++) {
-          html += '<div style="margin-bottom: 6px;">- ' + report.recommendations[r] + '</div>';
+        for (let r = 0; r < recommendations.length; r++) {
+          html += '<div style="margin-bottom: 6px;">- ' + recommendations[r] + '</div>';
         }
         html += '</div></div>';
-      }
-
-      // VQA Quick Answers section
-      const vqaKeys = Object.keys(vqa_quick_answers);
-      if (vqaKeys.length > 0) {
-        const vqaLabels = { defect: 'Có lỗi không?', severity: 'Mức độ nghiêm trọng?', verdict: 'Kết luận?', position: 'Vị trí lỗi?', count: 'Số lượng lỗi?' };
-        html += '<div class="section-title">Hỏi & Đáp Về Ảnh</div><div class="vqa-grid">';
-        for (let k = 0; k < vqaKeys.length; k++) {
-          const key = vqaKeys[k];
-          const label = vqaLabels[key] || key;
-          const answer = vqa_quick_answers[key] || 'Không có câu trả lời';
-          html += '<div class="vqa-card"><div class="vqa-question">' + label + '</div><div class="vqa-answer">' + answer + '</div></div>';
-        }
-        html += '</div>';
       }
 
       // VQA Free-form Chat Box
@@ -1273,21 +1372,32 @@
           html += '<div class="info-row"><span class="info-label">Thời gian</span><span class="info-value">' + log.timestamp + 's</span></div>';
           html += '<div class="info-row"><span class="info-label">Số phát hiện</span><span class="info-value">' + (log.predictions_count || 0) + '</span></div>';
 
-          // Enriched predictions per frame
+          // Enriched predictions per frame + VQA per defect
           for (let p = 0; p < preds.length; p++) {
             const pred = preds[p];
-            html += '<div class="info-row"><span class="info-label">Loại lỗi</span><span class="info-value">' + (pred.defect_type || pred.class_name || 'N/A') + '</span></div>';
+            const predId = 'vd_vqa_' + d + '_' + p;
+            const defectType = pred.defect_type || pred.class_name || 'Lỗi #' + (p + 1);
+            html += '<div class="info-row"><span class="info-label">Loại lỗi #' + (p + 1) + '</span><span class="info-value">' + defectType + '</span></div>';
             if (pred.severity) {
               const sevLevel = pred.severity.level || (typeof pred.severity === 'string' ? pred.severity : 'N/A');
               html += '<div class="info-row"><span class="info-label">Mức độ</span><span class="info-value">' + sevLevel + '</span></div>';
             }
+            // VQA per defect
+            html += '<div class="vqa-per-defect">';
+            html += '<div class="vqa-input-row">';
+            html += '<input type="text" id="' + predId + '_input" placeholder="Hỏi về ' + defectType + '..." onkeydown="if(event.key===\'Enter\') askVQAForDefect(\'' + (apiClient.baseUrl + (log.saved_image_url || '')) + '\', \'' + predId + '\')">';
+            html += '<button onclick="askVQAForDefect(\'' + (apiClient.baseUrl + (log.saved_image_url || '')) + '\', \'' + predId + '\')">Hỏi</button>';
+            html += '</div>';
+            html += '<div id="' + predId + '_answer" class="vqa-answer" style="display: none;"></div>';
+            html += '</div>';
           }
 
           // Report recommendations per frame
-          if (logReport.recommendations && logReport.recommendations.length > 0) {
+          const logRecommendations = collectRecommendations(logReport, preds);
+          if (logRecommendations.length > 0) {
             html += '<div style="grid-column: 1 / -1;"><div class="report-box"><div class="report-title">Khuyến cáo</div><div class="report-content">';
-            for (let r = 0; r < logReport.recommendations.length; r++) {
-              html += '<div style="margin-bottom: 4px;">- ' + logReport.recommendations[r] + '</div>';
+            for (let r = 0; r < logRecommendations.length; r++) {
+              html += '<div style="margin-bottom: 4px;">- ' + logRecommendations[r] + '</div>';
             }
             html += '</div></div></div>';
           }
@@ -1314,16 +1424,59 @@
         html += '<div style="padding: 16px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;">Không phát hiện lỗi</div>';
       }
 
-      // VQA Free-form Chat Box for video
-      html += '<div class="section-title">💬 Hỏi Thêm Về Ảnh</div>';
-      html += '<div class="vqa-form">';
-      html += '<input type="text" id="vqaQuestionInput" class="vqa-input" placeholder="Nhập câu hỏi của bạn..." onkeydown="if(event.key===\'Enter\') askVQAQuestion()">';
-      html += '<button class="btn-primary" id="vqaAskBtn" onclick="askVQAQuestion()" style="max-width: 100px; margin: 0;">Hỏi</button>';
-      html += '</div>';
-      html += '<div id="vqaAnswerContainer" class="vqa-answer-box" style="display: none;"></div>';
-
       container.innerHTML = html;
       saveVideoHistory(result);
+    }
+
+    /**
+     * Ask a VQA question about a specific defect in a video frame.
+     * @param {string} imageUrl - Full URL to the annotated frame image
+     * @param {string} predId - Unique ID for this defect's VQA elements (e.g. 'rv_vqa_0_1')
+     */
+    function askVQAForDefect(imageUrl, predId) {
+      const input = document.getElementById(predId + '_input');
+      const answerContainer = document.getElementById(predId + '_answer');
+      if (!input || !answerContainer) return;
+      const question = input.value.trim();
+      if (!question) return;
+
+      // Show loading
+      answerContainer.style.display = 'block';
+      answerContainer.className = 'vqa-loading';
+      answerContainer.innerHTML = '<span class="spinner"></span> Đang phân tích...';
+
+      // Build context from the log's prediction (the log data is available from the video result)
+      // We pass the entire video result's context for that frame
+      const result = window.videoProcessingResult;
+      let context = null;
+      if (result && result.logs) {
+        // Extract the frame index from predId format: {prefix}_d_p
+        const parts = predId.split('_');
+        const d = parseInt(parts[2]); // frame index in defectLogs
+        const p = parseInt(parts[3]); // prediction index
+        if (!isNaN(d) && !isNaN(p)) {
+          const defectLogs = result.logs.filter(function(l) { return l.has_defect; });
+          const log = defectLogs[d];
+          if (log && log.predictions && log.predictions[p]) {
+            context = {
+              enriched_predictions: [log.predictions[p]],
+              report: log.report || {}
+            };
+          }
+        }
+      }
+
+      apiClient.askVQAFromUrl(imageUrl, question, context)
+        .then(function(vqaResult) {
+          const answer = vqaResult.answer || 'Không có câu trả lời';
+          answerContainer.innerHTML = answer;
+          answerContainer.className = 'vqa-answer';
+          input.value = '';
+        })
+        .catch(function(error) {
+          answerContainer.innerHTML = '❌ Lỗi: ' + error.message;
+          answerContainer.className = 'vqa-error';
+        });
     }
 
     function replayVideoStream() {
@@ -1507,21 +1660,32 @@
           html += '<div class="info-row"><span class="info-label">Thời gian</span><span class="info-value">' + log.timestamp + 's</span></div>';
           html += '<div class="info-row"><span class="info-label">Số phát hiện</span><span class="info-value">' + (log.predictions_count || 0) + '</span></div>';
 
-          // Enriched predictions per frame
+          // Enriched predictions per frame + VQA per defect
           for (let p = 0; p < preds.length; p++) {
             const pred = preds[p];
-            html += '<div class="info-row"><span class="info-label">Loại lỗi</span><span class="info-value">' + (pred.defect_type || pred.class_name || 'N/A') + '</span></div>';
+            const predId = 'rv_vqa_' + d + '_' + p;
+            const defectType = pred.defect_type || pred.class_name || 'Lỗi #' + (p + 1);
+            html += '<div class="info-row"><span class="info-label">Loại lỗi #' + (p + 1) + '</span><span class="info-value">' + defectType + '</span></div>';
             if (pred.severity) {
               const sevLevel = pred.severity.level || (typeof pred.severity === 'string' ? pred.severity : 'N/A');
               html += '<div class="info-row"><span class="info-label">Mức độ</span><span class="info-value">' + sevLevel + '</span></div>';
             }
+            // VQA per defect
+            html += '<div class="vqa-per-defect">';
+            html += '<div class="vqa-input-row">';
+            html += '<input type="text" id="' + predId + '_input" placeholder="Hỏi về ' + defectType + '..." onkeydown="if(event.key===\'Enter\') askVQAForDefect(\'' + (apiClient.baseUrl + (log.saved_image_url || '')) + '\', \'' + predId + '\')">';
+            html += '<button onclick="askVQAForDefect(\'' + (apiClient.baseUrl + (log.saved_image_url || '')) + '\', \'' + predId + '\')">Hỏi</button>';
+            html += '</div>';
+            html += '<div id="' + predId + '_answer" class="vqa-answer" style="display: none;"></div>';
+            html += '</div>';
           }
 
           // Report per frame
-          if (logReport.recommendations && logReport.recommendations.length > 0) {
+          const logRecommendations = collectRecommendations(logReport, preds);
+          if (logRecommendations.length > 0) {
             html += '<div style="grid-column: 1 / -1;"><div class="report-box"><div class="report-title">Khuyến cáo</div><div class="report-content">';
-            for (let r = 0; r < logReport.recommendations.length; r++) {
-              html += '<div style="margin-bottom: 4px;">- ' + logReport.recommendations[r] + '</div>';
+            for (let r = 0; r < logRecommendations.length; r++) {
+              html += '<div style="margin-bottom: 4px;">- ' + logRecommendations[r] + '</div>';
             }
             html += '</div></div></div>';
           }
@@ -1547,14 +1711,6 @@
       } else {
         html += '<div style="padding: 16px; background: #e8f5e9; border-radius: 8px; color: #2e7d32;">Không phát hiện lỗi</div>';
       }
-
-      // VQA Free-form Chat Box for video
-      html += '<div class="section-title">💬 Hỏi Thêm Về Ảnh</div>';
-      html += '<div class="vqa-form">';
-      html += '<input type="text" id="vqaQuestionInput" class="vqa-input" placeholder="Nhập câu hỏi của bạn..." onkeydown="if(event.key===\'Enter\') askVQAQuestion()">';
-      html += '<button class="btn-primary" id="vqaAskBtn" onclick="askVQAQuestion()" style="max-width: 100px; margin: 0;">Hỏi</button>';
-      html += '</div>';
-      html += '<div id="vqaAnswerContainer" class="vqa-answer-box" style="display: none;"></div>';
 
       container.innerHTML = html || '<div class="empty-state">Không có dữ liệu</div>';
     }

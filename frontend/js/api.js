@@ -1,6 +1,6 @@
 /**
- * API Integration Layer
- * Handles all communication with backend FastAPI
+ * Lớp Tích Hợp API
+ * Xử lý mọi giao tiếp với backend FastAPI
  */
 
 const API_BASE = 'http://localhost:8000';
@@ -8,11 +8,11 @@ const API_BASE = 'http://localhost:8000';
 class APIClient {
   constructor(baseUrl = API_BASE) {
     this.baseUrl = baseUrl;
-    this.timeout = 300000; // 5 min timeout for video processing
+    this.timeout = 300000; // 5 phút timeout cho xử lý video
   }
 
   /**
-   * Generic fetch wrapper with error handling
+   * Wrapper fetch chung với xử lý lỗi
    */
   async request(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
@@ -36,16 +36,16 @@ class APIClient {
     } catch (error) {
       clearTimeout(timeoutId);
       if (error.name === 'AbortError') {
-        throw new Error('Request timeout');
+        throw new Error('Yêu cầu đã hết thời gian chờ');
       }
       throw error;
     }
   }
 
   /**
-   * Upload image and run full inspection pipeline
-   * @param {File} file - Image file
-   * @param {number} confidence - Confidence threshold (0-1)
+   * Tải lên ảnh và chạy quy trình kiểm tra đầy đủ
+   * @param {File} file - File ảnh
+   * @param {number} confidence - Ngưỡng độ tin cậy (0-1)
    * @returns {Object} {predictions, image_path, report, vqa_answers}
    */
   async inspectImage(file, confidence = 0.25) {
@@ -60,9 +60,9 @@ class APIClient {
   }
 
   /**
-   * Segment image (detect + mask)
-   * @param {File} file - Image file
-   * @param {number} confidence - Confidence threshold
+   * Phân vùng ảnh (phát hiện + mặt nạ)
+   * @param {File} file - File ảnh
+   * @param {number} confidence - Ngưỡng độ tin cậy
    * @returns {Object} {predictions, annotated_image_path}
    */
   async segmentImage(file, confidence = 0.25) {
@@ -77,9 +77,9 @@ class APIClient {
   }
 
   /**
-   * Detect objects in image (bounding box only)
-   * @param {File} file - Image file
-   * @param {number} confidence - Confidence threshold
+   * Phát hiện đối tượng trong ảnh (chỉ bounding box)
+   * @param {File} file - File ảnh
+   * @param {number} confidence - Ngưỡng độ tin cậy
    * @returns {Object} {predictions, annotated_image_path}
    */
   async detectImage(file, confidence = 0.25) {
@@ -94,8 +94,8 @@ class APIClient {
   }
 
   /**
-   * Get image caption
-   * @param {File} file - Image file
+   * Lấy chú thích ảnh
+   * @param {File} file - File ảnh
    * @returns {Object} {caption}
    */
   async captionImage(file) {
@@ -109,10 +109,10 @@ class APIClient {
   }
 
   /**
-   * Ask question about image (VQA)
-   * @param {File} file - Image file
-   * @param {string} question - Question text
-   * @param {Object} context - Optional inspection context
+   * Hỏi câu hỏi về ảnh (VQA)
+   * @param {File} file - File ảnh
+   * @param {string} question - Nội dung câu hỏi
+   * @param {Object} context - Ngữ cảnh kiểm tra tùy chọn
    * @returns {Object} {answer}
    */
   async askVQA(file, question, context = null) {
@@ -130,11 +130,11 @@ class APIClient {
   }
 
   /**
-   * Upload and process video (with scene change detection)
-   * @param {File} file - Video file
-   * @param {number} confidence - Confidence threshold
-   * @param {number} maxFrames - Maximum frames to process
-   * @param {number} sceneThreshold - Scene change detection threshold (lower = more sensitive)
+   * Tải lên và xử lý video (với phát hiện thay đổi cảnh)
+   * @param {File} file - File video
+   * @param {number} confidence - Ngưỡng độ tin cậy
+   * @param {number} maxFrames - Số lượng frame tối đa cần xử lý
+   * @param {number} sceneThreshold - Ngưỡng phát hiện thay đổi cảnh (thấp hơn = nhạy hơn)
    * @returns {Object} {status, message, total_frames, unique_images_detected, defect_frames}
    */
   async processVideo(file, confidence = 0.25, maxFrames = 40, sceneThreshold = 30.0) {
@@ -151,10 +151,32 @@ class APIClient {
   }
 
   /**
-   * Simulate a live conveyor inspection stream from the backend.
-   * @param {number} frames - Number of simulated frames to return
-   * @param {number} intervalMs - Delay between frames in milliseconds
-   * @param {number} confidence - Confidence threshold used for the simulation
+   * Lấy ảnh từ URL, sau đó hỏi câu hỏi VQA về ảnh đó.
+   * Dùng cho các frame video khi có saved_image_url thay vì file tải lên.
+   * @param {string} imageUrl - URL của ảnh cần hỏi
+   * @param {string} question - Nội dung câu hỏi
+   * @param {Object} context - Ngữ cảnh kiểm tra tùy chọn (ví dụ: dự đoán của một lỗi cụ thể)
+   * @returns {Object} {answer}
+   */
+  async askVQAFromUrl(imageUrl, question, context = null) {
+    // Lấy ảnh từ URL dưới dạng blob
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Không thể lấy ảnh từ ${imageUrl}: HTTP ${response.status}`);
+    }
+    const blob = await response.blob();
+    const fileName = imageUrl.split('/').pop() || 'frame.jpg';
+    const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+
+    // Sau đó dùng phương thức askVQA có sẵn
+    return this.askVQA(file, question, context);
+  }
+
+  /**
+   * Mô phỏng luồng kiểm tra băng chuyền trực tiếp từ backend.
+   * @param {number} frames - Số lượng frame mô phỏng cần trả về
+   * @param {number} intervalMs - Độ trễ giữa các frame tính bằng mili giây
+   * @param {number} confidence - Ngưỡng độ tin cậy dùng cho mô phỏng
    * @returns {Object} {status, frames, interval_ms}
    */
   async simulateConveyor(frames = 8, intervalMs = 800, confidence = 0.25) {
@@ -170,10 +192,10 @@ class APIClient {
   }
 
   /**
-   * Get inspection logs/history
-   * @param {number} page - Page number (1-indexed)
-   * @param {number} limit - Items per page
-   * @param {string} verdict - Filter by verdict (PASS|FLAG|REJECT)
+   * Lấy nhật ký/lịch sử kiểm tra
+   * @param {number} page - Số trang (đánh số từ 1)
+   * @param {number} limit - Số mục mỗi trang
+   * @param {string} verdict - Lọc theo kết luận (PASS|FLAG|REJECT)
    * @returns {Object} {data: Array, total, page, pages}
    */
   async getInspectionLogs(page = 1, limit = 10, verdict = null) {
@@ -191,9 +213,9 @@ class APIClient {
   }
 
   /**
-   * Get inspection detail by ID
-   * @param {number} id - Inspection ID
-   * @returns {Object} Full inspection details
+   * Lấy chi tiết kiểm tra theo ID
+   * @param {number} id - ID kiểm tra
+   * @returns {Object} Chi tiết kiểm tra đầy đủ
    */
   async getInspectionDetail(id) {
     return this.request(`/logs/${id}`, {
@@ -202,7 +224,7 @@ class APIClient {
   }
 
   /**
-   * Health check
+   * Kiểm tra sức khỏe
    * @returns {Object} {status}
    */
   async healthCheck() {
@@ -212,8 +234,8 @@ class APIClient {
   }
 
   /**
-   * Delete inspection record
-   * @param {number} id - Inspection ID
+   * Xóa bản ghi kiểm tra
+   * @param {number} id - ID kiểm tra
    * @returns {Object} {message}
    */
   async deleteInspection(id) {
@@ -223,5 +245,5 @@ class APIClient {
   }
 }
 
-// Export singleton instance
+// Xuất singleton instance
 const apiClient = new APIClient();

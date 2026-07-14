@@ -1,11 +1,11 @@
 """
-Inspection Report Service
+Dịch Vụ Báo Cáo Kiểm Tra
 =========================
-Generates structured inspection reports based on enriched predictions
-from the Feature Extraction Module.
+Tạo báo cáo kiểm tra có cấu trúc dựa trên các dự đoán đã làm giàu
+từ Module Trích Xuất Đặc Trưng.
 
-Uses rule-based logic to summarize defect findings and provide
-quality control recommendations.
+Sử dụng logic dựa trên quy tắc để tổng hợp kết quả phát hiện lỗi và cung cấp
+khuyến cáo kiểm soát chất lượng.
 """
 
 from __future__ import annotations
@@ -15,9 +15,9 @@ from typing import Any
 
 class InspectionReportService:
     """
-    Generates a human-readable inspection report from enriched predictions.
+    Tạo báo cáo kiểm tra có thể đọc được từ các dự đoán đã làm giàu.
 
-    Usage:
+    Cách dùng:
         reporter = InspectionReportService()
         report = reporter.generate_report(enriched_predictions, filename, img_size)
     """
@@ -32,55 +32,55 @@ class InspectionReportService:
         image_size: tuple[int, int] | None = None,
     ) -> dict[str, Any]:
         """
-        Generate a full inspection report.
+        Tạo báo cáo kiểm tra đầy đủ.
 
         Args:
-            enriched_predictions: Output from FeatureExtractor.extract()
-            filename: Original image/video filename
-            image_size: (width, height) of original image
+            enriched_predictions: Kết quả từ FeatureExtractor.extract()
+            filename: Tên file ảnh/video gốc
+            image_size: (chiều rộng, chiều cao) của ảnh gốc
 
         Returns:
-            Structured inspection report dict
+            Dict báo cáo kiểm tra có cấu trúc
         """
         total_defects = len(enriched_predictions)
 
-        # Defect type breakdown
+        # Phân tích theo loại lỗi
         defect_type_counts: dict[str, int] = {}
         for pred in enriched_predictions:
             dt = pred.get("defect_type", "unknown")
             defect_type_counts[dt] = defect_type_counts.get(dt, 0) + 1
 
-        # Severity breakdown
+        # Phân tích theo mức độ nghiêm trọng
         severity_counts: dict[str, int] = {"Low": 0, "Medium": 0, "High": 0, "Critical": 0}
         for pred in enriched_predictions:
             sev = pred.get("severity", {}).get("level", "Low")
             severity_counts[sev] = severity_counts.get(sev, 0) + 1
 
-        # Position heatmap
+        # Bản đồ nhiệt vị trí
         position_counts: dict[str, int] = {}
         for pred in enriched_predictions:
             zone = pred.get("position", {}).get("zone", "unknown")
             position_counts[zone] = position_counts.get(zone, 0) + 1
 
-        # Overall verdict
+        # Kết luận tổng thể
         critical_or_high = severity_counts.get("Critical", 0) + severity_counts.get("High", 0)
         if critical_or_high > 0:
             verdict = "REJECT"
-            verdict_reason = f"Found {critical_or_high} High/Critical severity defect(s). Product fails QC."
+            verdict_reason = f"Phát hiện {critical_or_high} lỗi mức Cao/Nghiêm trọng. Sản phẩm không đạt QC."
         elif total_defects == 0:
             verdict = "PASS"
-            verdict_reason = "No defects detected. Product passes quality check."
+            verdict_reason = "Không phát hiện lỗi. Sản phẩm đạt tiêu chuẩn chất lượng."
         elif severity_counts.get("Medium", 0) > 2:
             verdict = "REJECT"
-            verdict_reason = f"Multiple medium-severity defects ({severity_counts['Medium']}). Product fails QC."
+            verdict_reason = f"Nhiều lỗi mức trung bình ({severity_counts['Medium']}). Sản phẩm không đạt QC."
         elif severity_counts.get("Medium", 0) > 0:
             verdict = "FLAG"
-            verdict_reason = "Minor/medium defects found. Recommend secondary inspection."
+            verdict_reason = "Phát hiện lỗi nhỏ/trung bình. Khuyến cáo kiểm tra phụ."
         else:
             verdict = "PASS"
-            verdict_reason = "Minor defects only within acceptable tolerance."
+            verdict_reason = "Chỉ có lỗi nhỏ trong phạm vi dung sai cho phép."
 
-        # Build report
+        # Xây dựng báo cáo
         report = {
             "inspection_summary": {
                 "filename": filename,
@@ -110,24 +110,24 @@ class InspectionReportService:
 
     def generate_text_summary(self, report: dict[str, Any]) -> str:
         """
-        Generate a human-readable text summary from the report dict.
-        Useful for VQA context or display.
+        Tạo tóm tắt văn bản có thể đọc được từ dict báo cáo.
+        Hữu ích cho ngữ cảnh VQA hoặc hiển thị.
         """
         summary = report.get("inspection_summary", {})
         verdict = report.get("verdict", {})
 
         lines = [
-            f"Inspection Report for: {summary.get('filename', 'unknown')}",
-            f"Image Size: {summary.get('image_size', 'unknown')}",
-            f"Total Defects: {summary.get('total_defects_found', 0)}",
-            f"Defect Types: {summary.get('defect_type_breakdown', {})}",
-            f"Severity Breakdown: {summary.get('severity_breakdown', {})}",
-            f"Verdict: {verdict.get('result', 'UNKNOWN')} - {verdict.get('reason', 'N/A')}",
+            f"Báo cáo kiểm tra cho: {summary.get('filename', 'unknown')}",
+            f"Kích thước ảnh: {summary.get('image_size', 'unknown')}",
+            f"Tổng số lỗi: {summary.get('total_defects_found', 0)}",
+            f"Loại lỗi: {summary.get('defect_type_breakdown', {})}",
+            f"Phân bố mức độ: {summary.get('severity_breakdown', {})}",
+            f"Kết luận: {verdict.get('result', 'UNKNOWN')} - {verdict.get('reason', 'N/A')}",
         ]
 
         pos = report.get("position_analysis", {})
         if pos.get("most_affected_zone"):
-            lines.append(f"Most Affected Zone: {pos['most_affected_zone']}")
+            lines.append(f"Vùng bị ảnh hưởng nhiều nhất: {pos['most_affected_zone']}")
 
         return "\n".join(lines)
 
@@ -137,27 +137,27 @@ class InspectionReportService:
         severity_counts: dict[str, int],
         total_defects: int,
     ) -> list[str]:
-        """Generate actionable recommendations based on inspection results."""
+        """Tạo các khuyến cáo có thể thực hiện dựa trên kết quả kiểm tra."""
         recs: list[str] = []
 
         if verdict == "REJECT":
-            recs.append("Immediately quarantine rejected product.")
+            recs.append("Cách ly ngay sản phẩm bị loại bỏ.")
             if severity_counts.get("Critical", 0) > 0:
-                recs.append("Notify quality engineering team for root cause analysis.")
-            recs.append("Review production line parameters for anomalies.")
+                recs.append("Thông báo cho nhóm kỹ thuật chất lượng để phân tích nguyên nhân gốc rễ.")
+            recs.append("Rà soát thông số dây chuyền sản xuất để tìm bất thường.")
 
         elif verdict == "FLAG":
-            recs.append("Route product to manual QC inspection station.")
-            recs.append("Capture additional images for documentation.")
+            recs.append("Chuyển sản phẩm đến trạm kiểm tra QC thủ công.")
+            recs.append("Chụp thêm ảnh để lưu trữ tài liệu.")
             if total_defects > 3:
-                recs.append("Consider temporary line slowdown for quality check.")
+                recs.append("Cân nhắc giảm tốc độ tạm thời để kiểm tra chất lượng.")
 
         else:
-            recs.append("Product passes QC. Proceed to packaging.")
+            recs.append("Sản phẩm đạt QC. Tiến hành đóng gói.")
             if total_defects > 0:
-                recs.append("Log minor defects for statistical process control.")
+                recs.append("Ghi nhận lỗi nhỏ để kiểm soát quy trình thống kê.")
 
         if total_defects == 0:
-            recs.append("No action required.")
+            recs.append("Không cần hành động.")
 
         return recs

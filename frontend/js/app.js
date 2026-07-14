@@ -1,8 +1,8 @@
 /**
- * Main Application Entry Point
+ * Điểm Vào Chính của Ứng Dụng
  */
 
-// Application state
+// Trạng thái ứng dụng
 const appState = {
   isProcessing: false,
   currentInspection: null,
@@ -10,36 +10,36 @@ const appState = {
 };
 
 /**
- * Initialize application
+ * Khởi tạo ứng dụng
  */
 async function initApp() {
-  console.log('Initializing application...');
+  console.log('Đang khởi tạo ứng dụng...');
 
-  // Check backend connectivity
+  // Kiểm tra kết nối backend
   try {
     await apiClient.healthCheck();
-    console.log('✓ Backend connected');
+    console.log('✓ Đã kết nối backend');
   } catch (error) {
-    console.error('✗ Backend connection failed:', error);
-    showToast('Warning: Cannot connect to backend. Please start the backend server.', 'warning');
+    console.error('✗ Kết nối backend thất bại:', error);
+    showToast('Cảnh báo: Không thể kết nối backend. Vui lòng khởi động máy chủ backend.', 'warning');
   }
 
-  // Initialize UI manager
+  // Khởi tạo quản lý giao diện
   uiManager.init();
 
-  // Load initial page (dashboard)
+  // Tải trang ban đầu (dashboard)
   uiManager.navigateToPage('dashboard');
 
-  // Setup theme
+  // Thiết lập chủ đề
   const savedTheme = Storage.get('theme', 'light');
   applyTheme(savedTheme);
 
-  console.log('✓ Application initialized');
+  console.log('✓ Ứng dụng đã khởi tạo');
 }
 
 /**
- * Apply theme
- * @param {string} theme - Theme name (light|dark)
+ * Áp dụng chủ đề
+ * @param {string} theme - Tên chủ đề (light|dark)
  */
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-bs-theme', theme);
@@ -48,7 +48,7 @@ function applyTheme(theme) {
 }
 
 /**
- * Toggle theme
+ * Chuyển đổi chủ đề
  */
 function toggleTheme() {
   const newTheme = appState.theme === 'light' ? 'dark' : 'light';
@@ -56,13 +56,13 @@ function toggleTheme() {
 }
 
 /**
- * Handle async operations with loading state
- * @param {Function} fn - Async function to execute
- * @param {string} message - Loading message
+ * Xử lý tác vụ bất đồng bộ với trạng thái tải
+ * @param {Function} fn - Hàm bất đồng bộ cần thực thi
+ * @param {string} message - Thông báo đang tải
  */
-async function withLoading(fn, message = 'Processing...') {
+async function withLoading(fn, message = 'Đang xử lý...') {
   if (appState.isProcessing) {
-    showToast('Another operation is in progress', 'warning');
+    showToast('Một tác vụ khác đang được xử lý', 'warning');
     return;
   }
 
@@ -72,8 +72,8 @@ async function withLoading(fn, message = 'Processing...') {
   try {
     return await fn();
   } catch (error) {
-    console.error('Error:', error);
-    showToast(`Error: ${error.message}`, 'error');
+    console.error('Lỗi:', error);
+    showToast(`Lỗi: ${error.message}`, 'error');
   } finally {
     appState.isProcessing = false;
     hideSpinner();
@@ -81,29 +81,29 @@ async function withLoading(fn, message = 'Processing...') {
 }
 
 /**
- * Global keyboard shortcuts
+ * Phím tắt toàn cục
  */
 function setupKeyboardShortcuts() {
   document.addEventListener('keydown', (e) => {
-    // Ctrl+U: Go to upload
+    // Ctrl+U: Tới trang tải lên
     if (e.ctrlKey && e.key === 'u') {
       e.preventDefault();
       uiManager.navigateToPage('upload');
     }
 
-    // Ctrl+H: Go to history
+    // Ctrl+H: Tới trang lịch sử
     if (e.ctrlKey && e.key === 'h') {
       e.preventDefault();
       uiManager.navigateToPage('history');
     }
 
-    // Ctrl+D: Go to dashboard
+    // Ctrl+D: Tới trang tổng quan
     if (e.ctrlKey && e.key === 'd') {
       e.preventDefault();
       uiManager.navigateToPage('dashboard');
     }
 
-    // Ctrl+T: Toggle theme
+    // Ctrl+T: Chuyển đổi chủ đề
     if (e.ctrlKey && e.key === 't') {
       e.preventDefault();
       toggleTheme();
@@ -112,7 +112,7 @@ function setupKeyboardShortcuts() {
 }
 
 /**
- * Export global functions
+ * Xuất các hàm toàn cục
  */
 window.appState = appState;
 window.appInit = initApp;
@@ -121,7 +121,7 @@ window.toggleTheme = toggleTheme;
 window.withLoading = withLoading;
 
 /**
- * DOMContentLoaded: Start app
+ * DOMContentLoaded: Khởi động ứng dụng
  */
 document.addEventListener('DOMContentLoaded', () => {
   initApp();

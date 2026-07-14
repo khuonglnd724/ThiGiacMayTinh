@@ -11,3 +11,4 @@ runs/segment/AI/train/runs/ai-segmentation/segmentation/log.txt
 runs/segment/AI/train/runs/ai-segmentation/segmentation-yolo11n-07-07-7h/log.txt
 AI/test/output/evaluation_report.md
 runs/segment/AI/train/runs/ai-segmentation/temp01/log.txt
+log/vietnamese_localization_log.md

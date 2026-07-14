@@ -1,5 +1,5 @@
 /**
- * UI Components Manager
+ * Quản Lý Thành Phần Giao Diện
  */
 
 class UIManager {
@@ -10,7 +10,7 @@ class UIManager {
   }
 
   /**
-   * Initialize all UI event listeners
+   * Khởi tạo tất cả trình lắng nghe sự kiện giao diện
    */
   init() {
     this.setupNavigation();
@@ -20,7 +20,7 @@ class UIManager {
   }
 
   /**
-   * Setup navigation between pages
+   * Thiết lập điều hướng giữa các trang
    */
   setupNavigation() {
     const navLinks = document.querySelectorAll('[data-nav]');
@@ -34,26 +34,26 @@ class UIManager {
   }
 
   /**
-   * Navigate to a page
-   * @param {string} page - Page name (dashboard|upload|results|history|settings)
+   * Điều hướng tới một trang
+   * @param {string} page - Tên trang (dashboard|upload|results|history|settings)
    */
   navigateToPage(page) {
-    // Hide all pages
+    // Ẩn tất cả trang
     document.querySelectorAll('[data-page]').forEach((p) => {
       p.style.display = 'none';
     });
 
-    // Show selected page
+    // Hiện trang được chọn
     const pageEl = document.querySelector(`[data-page="${page}"]`);
     if (pageEl) {
       pageEl.style.display = 'block';
 
-      // Update active nav
+      // Cập nhật nav đang hoạt động
       document.querySelectorAll('[data-nav]').forEach((link) => {
         link.classList.toggle('active', link.dataset.nav === page);
       });
 
-      // Load page-specific data
+      // Tải dữ liệu riêng cho từng trang
       if (page === 'history') {
         this.loadHistory();
       } else if (page === 'dashboard') {
@@ -63,7 +63,7 @@ class UIManager {
   }
 
   /**
-   * Setup file upload widget
+   * Thiết lập widget tải lên file
    */
   setupUploadWidget() {
     const dropZone = document.getElementById('dropZone');
@@ -72,7 +72,7 @@ class UIManager {
 
     if (!dropZone || !fileInput) return;
 
-    // Drag and drop
+    // Kéo và thả
     dropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
       dropZone.classList.add('dragover');
@@ -92,7 +92,7 @@ class UIManager {
       }
     });
 
-    // Click to upload
+    // Nhấp để tải lên
     dropZone.addEventListener('click', () => {
       fileInput.click();
     });
@@ -109,8 +109,8 @@ class UIManager {
   }
 
   /**
-   * Preview uploaded file
-   * @param {File} file - File object
+   * Xem trước file đã tải lên
+   * @param {File} file - File đối tượng
    */
   async previewFile(file) {
     const reader = new FileReader();
@@ -122,14 +122,14 @@ class UIManager {
         preview.style.display = 'block';
       }
 
-      // Show file info
+      // Hiển thị thông tin file
       const fileInfo = document.getElementById('fileInfo');
       if (fileInfo) {
         fileInfo.innerHTML = `
           <div class="small">
             <p><strong>File:</strong> ${file.name}</p>
-            <p><strong>Size:</strong> ${formatBytes(file.size)}</p>
-            <p><strong>Type:</strong> ${file.type}</p>
+            <p><strong>Kích thước:</strong> ${formatBytes(file.size)}</p>
+            <p><strong>Loại:</strong> ${file.type}</p>
           </div>
         `;
       }
@@ -138,37 +138,37 @@ class UIManager {
   }
 
   /**
-   * Upload and process file
+   * Tải lên và xử lý file
    */
   async uploadFile() {
     if (!this.currentImage) {
-      showToast('Please select an image first', 'warning');
+      showToast('Vui lòng chọn ảnh trước', 'warning');
       return;
     }
 
     const confidence =
       parseFloat(document.getElementById('confidenceSlider')?.value) || 0.25;
-    const hideSpinner = showSpinner('Processing image...');
+    const hideSpinner = showSpinner('Đang xử lý ảnh...');
 
     try {
       const results = await apiClient.inspectImage(this.currentImage, confidence);
       this.currentResults = results;
 
-      // Show results section
+      // Hiển thị phần kết quả
       this.displayResults(results);
       this.navigateToPage('results');
-      showToast('Inspection completed successfully!', 'success');
+      showToast('Kiểm tra hoàn tất!', 'success');
     } catch (error) {
-      console.error('Upload error:', error);
-      showToast(`Error: ${error.message}`, 'error');
+      console.error('Lỗi tải lên:', error);
+      showToast(`Lỗi: ${error.message}`, 'error');
     } finally {
       hideSpinner();
     }
   }
 
   /**
-   * Display inspection results
-   * @param {Object} results - Inspection results from API
+   * Hiển thị kết quả kiểm tra
+   * @param {Object} results - Kết quả kiểm tra từ API
    */
   displayResults(results) {
     const resultsContainer = document.getElementById('resultsContainer');
@@ -176,13 +176,13 @@ class UIManager {
 
     const { predictions, annotated_image_path, report, vqa_answers } = results;
 
-    // Display annotated image
+    // Hiển thị ảnh đã chú thích
     const annotatedImg = document.getElementById('annotatedImage');
     if (annotatedImg && annotated_image_path) {
       annotatedImg.src = annotated_image_path;
     }
 
-    // Display verdict
+    // Hiển thị kết luận
     const verdictEl = document.getElementById('verdictDisplay');
     if (verdictEl && report?.verdict) {
       verdictEl.innerHTML = `
@@ -192,7 +192,7 @@ class UIManager {
       `;
     }
 
-    // Display predictions
+    // Hiển thị dự đoán
     const predictionsEl = document.getElementById('predictionsDisplay');
     if (predictionsEl && predictions?.length > 0) {
       const predictionsList = predictions
@@ -203,19 +203,19 @@ class UIManager {
             <h6 class="card-title">${pred.defect_type || pred.class_name}</h6>
             <div class="row">
               <div class="col-6">
-                <small><strong>Confidence:</strong> ${(pred.confidence * 100).toFixed(1)}%</small>
+                <small><strong>Độ tin cậy:</strong> ${(pred.confidence * 100).toFixed(1)}%</small>
               </div>
               <div class="col-6">
-                <small><strong>Area:</strong> ${pred.area?.toFixed(2)}%</small>
+                <small><strong>Diện tích:</strong> ${pred.area?.toFixed(2)}%</small>
               </div>
               <div class="col-6">
-                <small><strong>Position:</strong> ${pred.position}</small>
+                <small><strong>Vị trí:</strong> ${pred.position}</small>
               </div>
               <div class="col-6">
-                <small><strong>Severity:</strong> <span class="badge ${getSeverityClass(pred.severity)}">${pred.severity}</span></small>
+                <small><strong>Mức độ:</strong> <span class="badge ${getSeverityClass(pred.severity)}">${pred.severity}</span></small>
               </div>
               <div class="col-12">
-                <small><strong>Size:</strong> ${pred.size_classification}</small>
+                <small><strong>Kích thước:</strong> ${pred.size_classification}</small>
               </div>
             </div>
           </div>
@@ -226,18 +226,18 @@ class UIManager {
       predictionsEl.innerHTML = predictionsList;
     }
 
-    // Display report
+    // Hiển thị báo cáo
     const reportEl = document.getElementById('reportDisplay');
     if (reportEl && report) {
       reportEl.innerHTML = `
         <div class="report-section">
-          <h6>Inspection Summary</h6>
-          <p>${report.summary || 'No summary available'}</p>
+          <h6>Tóm tắt kiểm tra</h6>
+          <p>${report.summary || 'Không có tóm tắt'}</p>
           
           ${
             report.recommendations
               ? `
-          <h6 class="mt-3">Recommendations</h6>
+          <h6 class="mt-3">Khuyến cáo</h6>
           <ul>
             ${report.recommendations
               .map((rec) => `<li>${rec}</li>`)
@@ -250,7 +250,7 @@ class UIManager {
       `;
     }
 
-    // Display VQA answers
+    // Hiển thị câu trả lời VQA
     const vqaEl = document.getElementById('vqaAnswers');
     if (vqaEl && vqa_answers) {
       const answersList = Object.entries(vqa_answers)
@@ -270,20 +270,20 @@ class UIManager {
   }
 
   /**
-   * Load dashboard statistics
+   * Tải thống kê tổng quan
    */
   async loadDashboard() {
     try {
       const logs = await apiClient.getInspectionLogs(1, 100);
       const data = logs.data || [];
 
-      // Calculate statistics
+      // Tính toán thống kê
       const total = data.length;
       const passed = data.filter((l) => l.verdict === 'PASS').length;
       const flagged = data.filter((l) => l.verdict === 'FLAG').length;
       const rejected = data.filter((l) => l.verdict === 'REJECT').length;
 
-      // Display stats
+      // Hiển thị thống kê
       const dashboardStats = document.getElementById('dashboardStats');
       if (dashboardStats) {
         dashboardStats.innerHTML = `
@@ -292,7 +292,7 @@ class UIManager {
               <div class="stat-card card">
                 <div class="card-body text-center">
                   <h3>${total}</h3>
-                  <p>Total Inspections</p>
+                  <p>Tổng kiểm tra</p>
                 </div>
               </div>
             </div>
@@ -300,7 +300,7 @@ class UIManager {
               <div class="stat-card card">
                 <div class="card-body text-center">
                   <h3 class="text-success">${passed}</h3>
-                  <p>Passed</p>
+                  <p>Đạt</p>
                 </div>
               </div>
             </div>
@@ -308,7 +308,7 @@ class UIManager {
               <div class="stat-card card">
                 <div class="card-body text-center">
                   <h3 class="text-warning">${flagged}</h3>
-                  <p>Flagged</p>
+                  <p>Chờ xử lý</p>
                 </div>
               </div>
             </div>
@@ -316,7 +316,7 @@ class UIManager {
               <div class="stat-card card">
                 <div class="card-body text-center">
                   <h3 class="text-danger">${rejected}</h3>
-                  <p>Rejected</p>
+                  <p>Không đạt</p>
                 </div>
               </div>
             </div>
@@ -324,17 +324,17 @@ class UIManager {
         `;
       }
     } catch (error) {
-      console.error('Failed to load dashboard:', error);
+      console.error('Không thể tải tổng quan:', error);
     }
   }
 
   /**
-   * Load inspection history
-   * @param {number} page - Page number
+   * Tải lịch sử kiểm tra
+   * @param {number} page - Số trang
    */
   async loadHistory(page = 1) {
     try {
-      const hideSpinner = showSpinner('Loading history...');
+      const hideSpinner = showSpinner('Đang tải lịch sử...');
       const logs = await apiClient.getInspectionLogs(page, 10);
       hideSpinner();
 
@@ -355,10 +355,10 @@ class UIManager {
           <td>${formatDate(log.created_at)}</td>
           <td>
             <button class="btn btn-sm btn-primary" onclick="uiManager.showInspectionDetail(${log.id})">
-              View
+              Xem
             </button>
             <button class="btn btn-sm btn-danger" onclick="uiManager.deleteInspection(${log.id})">
-              Delete
+              Xóa
             </button>
           </td>
         </tr>
@@ -366,19 +366,19 @@ class UIManager {
         )
         .join('');
 
-      historyTable.innerHTML = rows || '<tr><td colspan="5" class="text-center">No records</td></tr>';
+      historyTable.innerHTML = rows || '<tr><td colspan="5" class="text-center">Không có bản ghi</td></tr>';
 
-      // Update pagination
+      // Cập nhật phân trang
       this.updatePagination(logs.page, logs.pages);
     } catch (error) {
-      console.error('Failed to load history:', error);
-      showToast('Failed to load history', 'error');
+      console.error('Không thể tải lịch sử:', error);
+      showToast('Không thể tải lịch sử', 'error');
     }
   }
 
   /**
-   * Show inspection detail
-   * @param {number} id - Inspection ID
+   * Hiển thị chi tiết kiểm tra
+   * @param {number} id - ID kiểm tra
    */
   async showInspectionDetail(id) {
     try {
@@ -394,28 +394,28 @@ class UIManager {
 
       modal.show();
     } catch (error) {
-      showToast(`Error: ${error.message}`, 'error');
+      showToast(`Lỗi: ${error.message}`, 'error');
     }
   }
 
   /**
-   * Delete inspection record
-   * @param {number} id - Inspection ID
+   * Xóa bản ghi kiểm tra
+   * @param {number} id - ID kiểm tra
    */
   async deleteInspection(id) {
-    if (confirm('Are you sure?')) {
+    if (confirm('Bạn có chắc chắn muốn xóa?')) {
       try {
         await apiClient.deleteInspection(id);
-        showToast('Deleted successfully', 'success');
+        showToast('Xóa thành công', 'success');
         this.loadHistory();
       } catch (error) {
-        showToast(`Error: ${error.message}`, 'error');
+        showToast(`Lỗi: ${error.message}`, 'error');
       }
     }
   }
 
   /**
-   * Setup settings form
+   * Thiết lập form cài đặt
    */
   setupSettingsForm() {
     const saveSettingsBtn = document.getElementById('saveSettingsBtn');
@@ -425,7 +425,7 @@ class UIManager {
   }
 
   /**
-   * Save settings to localStorage
+   * Lưu cài đặt vào localStorage
    */
   saveSettings() {
     const confidence = parseFloat(document.getElementById('confidenceSlider')?.value) || 0.25;
@@ -440,11 +440,11 @@ class UIManager {
       darkMode,
     });
 
-    showToast('Settings saved successfully', 'success');
+    showToast('Cài đặt đã được lưu', 'success');
   }
 
   /**
-   * Load settings from localStorage
+   * Tải cài đặt từ localStorage
    */
   loadSettings() {
     const settings = Storage.get('settings', {
@@ -487,24 +487,24 @@ class UIManager {
       });
     }
 
-    // Apply dark mode if enabled
+    // Áp dụng chế độ tối nếu được bật
     if (settings.darkMode) {
       this.toggleDarkMode(true);
     }
   }
 
   /**
-   * Toggle dark mode
-   * @param {boolean} enabled - Enable dark mode
+   * Chuyển đổi chế độ tối
+   * @param {boolean} enabled - Bật chế độ tối
    */
   toggleDarkMode(enabled) {
     document.documentElement.setAttribute('data-bs-theme', enabled ? 'dark' : 'light');
   }
 
   /**
-   * Update pagination controls
-   * @param {number} currentPage - Current page
-   * @param {number} totalPages - Total pages
+   * Cập nhật điều khiển phân trang
+   * @param {number} currentPage - Trang hiện tại
+   * @param {number} totalPages - Tổng số trang
    */
   updatePagination(currentPage, totalPages) {
     const paginationEl = document.getElementById('paginationControls');
@@ -513,8 +513,8 @@ class UIManager {
     const buttons = [];
     buttons.push(
       currentPage > 1
-        ? `<button class="btn btn-sm btn-outline-primary" onclick="uiManager.loadHistory(${currentPage - 1})">Previous</button>`
-        : `<button class="btn btn-sm btn-outline-primary" disabled>Previous</button>`
+        ? `<button class="btn btn-sm btn-outline-primary" onclick="uiManager.loadHistory(${currentPage - 1})">Trước</button>`
+        : `<button class="btn btn-sm btn-outline-primary" disabled>Trước</button>`
     );
 
     for (let i = 1; i <= totalPages && i <= 5; i++) {
@@ -525,13 +525,13 @@ class UIManager {
 
     buttons.push(
       currentPage < totalPages
-        ? `<button class="btn btn-sm btn-outline-primary" onclick="uiManager.loadHistory(${currentPage + 1})">Next</button>`
-        : `<button class="btn btn-sm btn-outline-primary" disabled>Next</button>`
+        ? `<button class="btn btn-sm btn-outline-primary" onclick="uiManager.loadHistory(${currentPage + 1})">Sau</button>`
+        : `<button class="btn btn-sm btn-outline-primary" disabled>Sau</button>`
     );
 
     paginationEl.innerHTML = buttons.join(' ');
   }
 }
 
-// Create global UI manager instance
+// Tạo instance quản lý giao diện toàn cục
 const uiManager = new UIManager();

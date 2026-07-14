@@ -1,0 +1,69 @@
+# Log: Sửa lỗi hiển thị severity "NORMAL" và thêm dịch loại lỗi sang tiếng Việt
+# Date: 2026-07-14 22:45
+
+## 1. Phát hiện lỗi
+
+Từ prediction thực tế của người dùng:
+```json
+{
+  "class_name": "metal_nut",
+  "defect_type": "dent",
+  "severity": {
+    "score": 81.45,
+    "level": "Critical",    // ← key là "level" chữ thường
+    "recommendation": "..."
+  }
+}
+```
+
+### Lỗi 1: Severity hiển thị "NORMAL" thay vì "CRITICAL"
+**File:** `frontend/index.html` (hàm `displayResults()`)
+```javascript
+// CŨ (lỗi):
+let sev = p.severity || 'NORMAL';
+if (typeof sev === 'object') sev = sev.LEVEL || 'NORMAL';  // .LEVEL viết hoa
+
+// Backend trả về: { level: "Critical" }  (chữ thường)
+// Frontend kiểm tra: sev.LEVEL → undefined → fallback về 'NORMAL'
+```
+
+### Lỗi 2: Loại lỗi hiển thị tiếng Anh thay vì tiếng Việt
+```javascript
+// CŨ (lỗi):
+const defectLabel = formatDisplayValue(p.defect_type || p.class_name || p.class, 'Lỗi');
+// "dent" → hiển thị "dent" (tiếng Anh)
+```
+
+## 2. File sửa: `frontend/index.html`
+
+### Dòng ~810: Sửa severity (CŨ → MỚI)
+```javascript
+// CŨ:
+if (typeof sev === 'object') sev = sev.LEVEL || 'NORMAL';
+// MỚI:
+if (typeof sev === 'object') sev = sev.level || sev.LEVEL || 'NORMAL';
+```
+→ Hỗ trợ cả `sev.level` (chữ thường, backend trả về) và `sev.LEVEL` (viết hoa, dự phòng)
+
+### Dòng ~818-828: Thêm mapping DEFECT_VN
+```javascript
+// THÊM MỚI:
+const DEFECT_VN = {
+  'scratch': 'Vết xước', 'dent': 'Vết lõm', 'crack': 'Vết nứt',
+  'chip': 'Mẻ', 'bubble': 'Bọt khí', 'contamination': 'Dị vật',
+  'break': 'Gãy/Vỡ', 'deform': 'Biến dạng', 'spot': 'Đốm',
+  'metal_nut': 'Đai ốc', 'screw': 'Ốc vít', 'bottle': 'Chai',
+  'cable': 'Cáp', 'surface': 'Bề mặt', 'product': 'Sản phẩm',
+  'defect': 'Lỗi'
+};
+const rawType = p.defect_type || p.class_name || p.class || '';
+const defectLabel = DEFECT_VN[rawType.toLowerCase()] || rawType || 'Lỗi';
+```
+
+## 3. Kết quả sau sửa
+
+| Trước | Sau |
+|-------|-----|
+| Severity: NORMAL | Severity: CRITICAL |
+| Loại lỗi: dent | Loại lỗi: Vết lõm |
+| Tên sản phẩm: metal_nut | Tên sản phẩm: Đai ốc |

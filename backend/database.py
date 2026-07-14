@@ -15,7 +15,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def get_db():
-    """Dependency injection helper to yield DB session."""
+    """Hàm hỗ trợ tiêm phụ thuộc để tạo phiên CSDL."""
     db = SessionLocal()
     try:
         yield db

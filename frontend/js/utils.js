@@ -1,12 +1,12 @@
 /**
- * Utility Functions
+ * Các Hàm Tiện Ích
  */
 
 /**
- * Format bytes to readable size
- * @param {number} bytes - Bytes
- * @param {number} decimals - Decimal places
- * @returns {string} Formatted size (e.g., "2.5 MB")
+ * Định dạng byte sang kích thước có thể đọc được
+ * @param {number} bytes - Byte
+ * @param {number} decimals - Số chữ số thập phân
+ * @returns {string} Kích thước đã định dạng (ví dụ: "2.5 MB")
  */
 function formatBytes(bytes, decimals = 2) {
   if (bytes === 0) return '0 Bytes';
@@ -18,16 +18,16 @@ function formatBytes(bytes, decimals = 2) {
 }
 
 /**
- * Format date to readable string
- * @param {string|Date} date - Date object or ISO string
- * @returns {string} Formatted date (e.g., "Jan 15, 2024 10:30 AM")
+ * Định dạng ngày thành chuỗi có thể đọc được
+ * @param {string|Date} date - Đối tượng ngày hoặc chuỗi ISO
+ * @returns {string} Ngày đã định dạng
  */
 function formatDate(date) {
   const d = new Date(date);
-  return d.toLocaleString('en-US', {
+  return d.toLocaleString('vi-VN', {
     year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
@@ -35,9 +35,9 @@ function formatDate(date) {
 }
 
 /**
- * Get verdict badge class
+ * Lấy lớp CSS cho huy hiệu kết luận
  * @param {string} verdict - PASS|FLAG|REJECT
- * @returns {string} CSS class name
+ * @returns {string} Tên lớp CSS
  */
 function getVerdictClass(verdict) {
   const verdictMap = {
@@ -49,9 +49,9 @@ function getVerdictClass(verdict) {
 }
 
 /**
- * Get severity badge class
+ * Lấy lớp CSS cho huy hiệu mức độ nghiêm trọng
  * @param {string} severity - Low|Medium|High|Critical
- * @returns {string} CSS class name
+ * @returns {string} Tên lớp CSS
  */
 function getSeverityClass(severity) {
   const severityMap = {
@@ -64,20 +64,20 @@ function getSeverityClass(severity) {
 }
 
 /**
- * Calculate percentage
- * @param {number} value - Value
- * @param {number} total - Total
- * @returns {number} Percentage (0-100)
+ * Tính phần trăm
+ * @param {number} value - Giá trị
+ * @param {number} total - Tổng
+ * @returns {number} Phần trăm (0-100)
  */
 function percentage(value, total) {
   return total === 0 ? 0 : Math.round((value / total) * 100);
 }
 
 /**
- * Debounce function
- * @param {Function} func - Function to debounce
- * @param {number} delay - Delay in milliseconds
- * @returns {Function} Debounced function
+ * Hàm debounce
+ * @param {Function} func - Hàm cần debounce
+ * @param {number} delay - Độ trễ tính bằng mili giây
+ * @returns {Function} Hàm đã debounce
  */
 function debounce(func, delay) {
   let timeoutId;
@@ -88,10 +88,10 @@ function debounce(func, delay) {
 }
 
 /**
- * Throttle function
- * @param {Function} func - Function to throttle
- * @param {number} delay - Delay in milliseconds
- * @returns {Function} Throttled function
+ * Hàm throttle
+ * @param {Function} func - Hàm cần throttle
+ * @param {number} delay - Độ trễ tính bằng mili giây
+ * @returns {Function} Hàm đã throttle
  */
 function throttle(func, delay) {
   let lastCall = 0;
@@ -105,23 +105,23 @@ function throttle(func, delay) {
 }
 
 /**
- * Deep clone object
- * @param {Object} obj - Object to clone
- * @returns {Object} Cloned object
+ * Sao chép sâu đối tượng
+ * @param {Object} obj - Đối tượng cần sao chép
+ * @returns {Object} Đối tượng đã sao chép
  */
 function deepClone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
 /**
- * LocalStorage wrapper
+ * Bọc LocalStorage
  */
 const Storage = {
   set(key, value) {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
-      console.error('Failed to save to localStorage:', error);
+      console.error('Không thể lưu vào localStorage:', error);
     }
   },
 
@@ -130,7 +130,7 @@ const Storage = {
       const item = localStorage.getItem(key);
       return item ? JSON.parse(item) : defaultValue;
     } catch (error) {
-      console.error('Failed to read from localStorage:', error);
+      console.error('Không thể đọc từ localStorage:', error);
       return defaultValue;
     }
   },
@@ -139,7 +139,7 @@ const Storage = {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.error('Failed to remove from localStorage:', error);
+      console.error('Không thể xóa khỏi localStorage:', error);
     }
   },
 
@@ -147,16 +147,16 @@ const Storage = {
     try {
       localStorage.clear();
     } catch (error) {
-      console.error('Failed to clear localStorage:', error);
+      console.error('Không thể xóa localStorage:', error);
     }
   },
 };
 
 /**
- * Show toast notification
- * @param {string} message - Message text
- * @param {string} type - Type (success|error|warning|info)
- * @param {number} duration - Duration in milliseconds
+ * Hiển thị thông báo toast
+ * @param {string} message - Nội dung thông báo
+ * @param {string} type - Loại (success|error|warning|info)
+ * @param {number} duration - Thời gian hiển thị tính bằng mili giây
  */
 function showToast(message, type = 'info', duration = 3000) {
   const toastContainer = document.getElementById('toast-container') || createToastContainer();
@@ -178,7 +178,7 @@ function showToast(message, type = 'info', duration = 3000) {
 }
 
 /**
- * Create toast container if not exists
+ * Tạo container toast nếu chưa tồn tại
  */
 function createToastContainer() {
   const container = document.createElement('div');
@@ -197,11 +197,11 @@ function createToastContainer() {
 }
 
 /**
- * Show loading spinner
- * @param {string} message - Message text
- * @returns {Function} Function to hide spinner
+ * Hiển thị spinner tải
+ * @param {string} message - Nội dung thông báo
+ * @returns {Function} Hàm để ẩn spinner
  */
-function showSpinner(message = 'Loading...') {
+function showSpinner(message = 'Đang tải...') {
   const overlay = document.createElement('div');
   overlay.id = 'loading-overlay';
   overlay.style.cssText = `
@@ -220,7 +220,7 @@ function showSpinner(message = 'Loading...') {
   overlay.innerHTML = `
     <div class="spinner-container text-center">
       <div class="spinner-border text-primary mb-3" role="status">
-        <span class="visually-hidden">Loading...</span>
+        <span class="visually-hidden">Đang tải...</span>
       </div>
       <p class="text-white">${message}</p>
     </div>
@@ -232,29 +232,29 @@ function showSpinner(message = 'Loading...') {
 }
 
 /**
- * Validate file type
- * @param {File} file - File object
- * @param {string[]} allowedTypes - Allowed MIME types
- * @returns {boolean} Is file valid
+ * Kiểm tra loại file hợp lệ
+ * @param {File} file - Đối tượng file
+ * @param {string[]} allowedTypes - Các loại MIME được phép
+ * @returns {boolean} File có hợp lệ không
  */
 function isValidFileType(file, allowedTypes) {
   return allowedTypes.includes(file.type);
 }
 
 /**
- * Validate file size
- * @param {File} file - File object
- * @param {number} maxSize - Max size in bytes
- * @returns {boolean} Is file valid
+ * Kiểm tra kích thước file hợp lệ
+ * @param {File} file - Đối tượng file
+ * @param {number} maxSize - Kích thước tối đa tính bằng byte
+ * @returns {boolean} File có hợp lệ không
  */
 function isValidFileSize(file, maxSize) {
   return file.size <= maxSize;
 }
 
 /**
- * Convert file to base64
- * @param {File} file - File object
- * @returns {Promise<string>} Base64 string
+ * Chuyển đổi file sang base64
+ * @param {File} file - Đối tượng file
+ * @returns {Promise<string>} Chuỗi base64
  */
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -266,9 +266,9 @@ function fileToBase64(file) {
 }
 
 /**
- * Download file
- * @param {string} url - File URL
- * @param {string} filename - Filename
+ * Tải file xuống
+ * @param {string} url - URL file
+ * @param {string} filename - Tên file
  */
 function downloadFile(url, filename = 'download') {
   const link = document.createElement('a');

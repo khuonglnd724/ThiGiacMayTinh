@@ -1,12 +1,12 @@
 """
-Feature Extraction Module
-=========================
-Extracts enriched features from YOLO segmentation predictions:
-  - Defect type classification
-  - Area calculation (pixel & normalized)
-  - Position analysis (relative zones)
-  - Size classification (small/medium/large)
-  - Severity scoring (Low/Medium/High/Critical)
+Module Trích Xuất Đặc Trưng
+============================
+Trích xuất các đặc trưng đã làm giàu từ kết quả dự đoán phân vùng YOLO:
+  - Phân loại loại lỗi
+  - Tính diện tích (pixel & chuẩn hóa)
+  - Phân tích vị trí (vùng tương đối)
+  - Phân loại kích thước (nhỏ/vừa/lớn)
+  - Điểm mức độ nghiêm trọng (Thấp/Trung bình/Cao/Nghiêm trọng)
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from typing import Any
 
 
 # ──────────────────────────────────────────────
-# Defect type mapping per product class
+# Ánh xạ loại lỗi theo từng lớp sản phẩm
 # ──────────────────────────────────────────────
 PRODUCT_DEFECT_MAP: dict[str, list[str]] = {
     "bottle": ["scratch", "crack", "dent", "broken", "contamination"],
@@ -40,7 +40,7 @@ PRODUCT_DEFECT_MAP: dict[str, list[str]] = {
 FALLBACK_DEFECT_TYPES = ["surface_anomaly", "scratch", "crack", "dent", "contamination"]
 
 
-# ── Position zones ────────────────────────────
+# ── Vùng vị trí ────────────────────────────
 POSITION_ZONES = {
     "top-left":      (0.0, 0.33, 0.0, 0.33),
     "top-center":    (0.33, 0.66, 0.0, 0.33),
@@ -56,9 +56,9 @@ POSITION_ZONES = {
 
 class FeatureExtractor:
     """
-    Extracts enriched features from YOLO segmentation predictions.
+    Trích xuất các đặc trưng đã làm giàu từ kết quả dự đoán phân vùng YOLO.
 
-    Usage:
+    Cách dùng:
         extractor = FeatureExtractor()
         enriched = extractor.extract(predictions, img_width, img_height)
     """
@@ -73,15 +73,15 @@ class FeatureExtractor:
         img_height: int,
     ) -> list[dict[str, Any]]:
         """
-        Enrich raw predictions with feature extraction.
+        Làm giàu các dự đoán thô với trích xuất đặc trưng.
 
         Args:
-            predictions: List of raw predictions from YOLOService
-            img_width: Original image width (px)
-            img_height: Original image height (px)
+            predictions: Danh sách dự đoán thô từ YOLOService
+            img_width: Chiều rộng ảnh gốc (px)
+            img_height: Chiều cao ảnh gốc (px)
 
         Returns:
-            List of enriched predictions with:
+            Danh sách dự đoán đã làm giàu với:
                 - defect_type, area (px, %), position, size_class, severity
         """
         enriched: list[dict[str, Any]] = []
@@ -90,10 +90,10 @@ class FeatureExtractor:
         for pred in predictions:
             item = dict(pred)  # shallow copy
 
-            # ── 1. Defect type ─────────────────────────────────
+            # ── 1. Loại lỗi ─────────────────────────────────
             item["defect_type"] = self._classify_defect_type(pred)
 
-            # ── 2. Area (polygon area + bbox area) ─────────────
+            # ── 2. Diện tích (diện tích đa giác + diện tích bbox) ─────────────
             polygon_area_norm, bbox_area_norm = self._compute_area(pred)
             polygon_area_px = polygon_area_norm * total_img_area
             bbox_area_px = bbox_area_norm * total_img_area
@@ -107,7 +107,7 @@ class FeatureExtractor:
                 "bbox_area_percent": round(bbox_area_norm * 100, 4),
             }
 
-            # ── 3. Position ────────────────────────────────────
+            # ── 3. Vị trí ────────────────────────────────────
             cx, cy = self._compute_centroid(pred)
             zone = self._classify_position(cx, cy)
             item["position"] = {
@@ -119,10 +119,10 @@ class FeatureExtractor:
                 "zone_description": self._zone_description(zone),
             }
 
-            # ── 4. Size classification ─────────────────────────
+            # ── 4. Phân loại kích thước ─────────────────────────
             item["size_classification"] = self._classify_size(polygon_area_norm)
 
-            # ── 5. Severity scoring ────────────────────────────
+            # ── 5. Điểm mức độ nghiêm trọng ────────────────────────────
             severity = self._compute_severity(
                 polygon_area_norm=polygon_area_norm,
                 cy=cy,
@@ -136,25 +136,25 @@ class FeatureExtractor:
         return enriched
 
     # ──────────────────────────────────────────────────────────
-    # Internal helpers
+    # Các hàm hỗ trợ nội bộ
     # ──────────────────────────────────────────────────────────
 
     def _classify_defect_type(self, pred: dict[str, Any]) -> str:
-        """Map prediction to a defect type based on class name & mask shape."""
+        """Ánh xạ dự đoán thành loại lỗi dựa trên tên lớp & hình dạng mặt nạ."""
         class_name = pred.get("class_name", "defect").lower()
         possible_types = PRODUCT_DEFECT_MAP.get(class_name, FALLBACK_DEFECT_TYPES)
 
         polygon = pred.get("polygon")
         if polygon and len(polygon) >= 3:
             aspect = self._polygon_aspect_ratio(polygon)
-            # Elongated shape → scratch / crack / cut
+            # Hình dạng kéo dài → scratch / crack / cut
             if aspect > 3.0:
                 for t in possible_types:
                     if t in ("scratch", "crack", "cut", "thread_defect",
                              "broken_tooth", "missing_wire"):
                         return t
                 return possible_types[0]
-            # Compact shape → dent / hole / chip
+            # Hình dạng nhỏ gọn → dent / hole / chip
             if aspect < 1.5:
                 for t in possible_types:
                     if t in ("dent", "hole", "chip", "stain"):
@@ -165,10 +165,10 @@ class FeatureExtractor:
 
     def _compute_area(self, pred: dict[str, Any]) -> tuple[float, float]:
         """
-        Return (polygon_normalized_area, bbox_normalized_area).
-        Both in [0, 1] range relative to the full image.
+        Trả về (diện_tích_đa_giác_đã_chuẩn_hóa, diện_tích_bbox_đã_chuẩn_hóa).
+        Cả hai đều trong khoảng [0, 1] so với toàn bộ ảnh.
         """
-        # ── Polygon area via Shoelace formula ──
+        # ── Diện tích đa giác qua công thức Shoelace ──
         polygon = pred.get("polygon")
         poly_area = 0.0
         if polygon and len(polygon) >= 3:
@@ -183,7 +183,7 @@ class FeatureExtractor:
             poly_area = abs(shoelace) / 2.0
             poly_area = max(0.0, min(poly_area, 1.0))
 
-        # ── Bounding box area ──
+        # ── Diện tích bounding box ──
         box = pred.get("box")
         bbox_area = 0.0
         if box and len(box) == 4:
@@ -194,7 +194,7 @@ class FeatureExtractor:
         return poly_area, bbox_area
 
     def _compute_centroid(self, pred: dict[str, Any]) -> tuple[float, float]:
-        """Return (cx_norm, cy_norm) in [0, 1]."""
+        """Trả về (cx_norm, cy_norm) trong [0, 1]."""
         polygon = pred.get("polygon")
         if polygon and len(polygon) >= 3:
             xs = [p[0] for p in polygon]
@@ -203,7 +203,7 @@ class FeatureExtractor:
             cy = sum(ys) / len(ys)
             return max(0.0, min(cx, 1.0)), max(0.0, min(cy, 1.0))
 
-        # Fallback: bounding box center
+        # Dự phòng: tâm bounding box
         box = pred.get("box")
         if box and len(box) == 4:
             cx = (box[0] + box[2]) / 2.0
@@ -213,7 +213,7 @@ class FeatureExtractor:
         return 0.5, 0.5
 
     def _classify_position(self, cx: float, cy: float) -> str:
-        """Match centroid to one of 9 position zones."""
+        """Khớp tâm với 1 trong 9 vùng vị trí."""
         for zone, (x1, x2, y1, y2) in POSITION_ZONES.items():
             if x1 <= cx < x2 and y1 <= cy < y2:
                 return zone
@@ -221,38 +221,38 @@ class FeatureExtractor:
 
     def _zone_description(self, zone: str) -> str:
         descriptions = {
-            "top-left":      "Upper-left corner of the product surface",
-            "top-center":    "Upper edge / top center region",
-            "top-right":     "Upper-right corner of the product surface",
-            "middle-left":   "Left side / middle-left region",
-            "center":        "Central region of the product surface",
-            "middle-right":  "Right side / middle-right region",
-            "bottom-left":   "Lower-left corner of the product surface",
-            "bottom-center": "Bottom edge / lower center region",
-            "bottom-right":  "Lower-right corner of the product surface",
+            "top-left":      "Góc trên bên trái của bề mặt sản phẩm",
+            "top-center":    "Cạnh trên / vùng trung tâm phía trên",
+            "top-right":     "Góc trên bên phải của bề mặt sản phẩm",
+            "middle-left":   "Phía trái / vùng giữa bên trái",
+            "center":        "Vùng trung tâm của bề mặt sản phẩm",
+            "middle-right":  "Phía phải / vùng giữa bên phải",
+            "bottom-left":   "Góc dưới bên trái của bề mặt sản phẩm",
+            "bottom-center": "Cạnh dưới / vùng trung tâm phía dưới",
+            "bottom-right":  "Góc dưới bên phải của bề mặt sản phẩm",
         }
-        return descriptions.get(zone, "Unknown position")
+        return descriptions.get(zone, "Vị trí không xác định")
 
     def _classify_size(self, area_norm: float) -> dict[str, Any]:
-        """Classify defect size relative to image."""
+        """Phân loại kích thước lỗi tương đối so với ảnh."""
         if area_norm < 0.001:
             level = "micro"
-            desc = "Micro defect, barely visible (< 0.1% of surface)"
+            desc = "Lỗi siêu nhỏ, khó thấy (< 0.1% bề mặt)"
         elif area_norm < 0.005:
             level = "tiny"
-            desc = "Tiny defect (0.1% ~ 0.5% of surface)"
+            desc = "Lỗi rất nhỏ (0.1% ~ 0.5% bề mặt)"
         elif area_norm < 0.02:
             level = "small"
-            desc = "Small defect (0.5% ~ 2% of surface)"
+            desc = "Lỗi nhỏ (0.5% ~ 2% bề mặt)"
         elif area_norm < 0.06:
             level = "medium"
-            desc = "Medium defect (2% ~ 6% of surface)"
+            desc = "Lỗi trung bình (2% ~ 6% bề mặt)"
         elif area_norm < 0.15:
             level = "large"
-            desc = "Large defect (6% ~ 15% of surface)"
+            desc = "Lỗi lớn (6% ~ 15% bề mặt)"
         else:
             level = "critical"
-            desc = "Critical defect size (> 15% of surface)"
+            desc = "Kích thước lỗi nghiêm trọng (> 15% bề mặt)"
 
         return {
             "level": level,
@@ -268,17 +268,17 @@ class FeatureExtractor:
         zone: str,
     ) -> dict[str, Any]:
         """
-        Compute severity score (0-100) and level.
+        Tính điểm mức độ nghiêm trọng (0-100) và cấp độ.
 
-        Scoring:
-          - Area contribution (0-40): larger area -> higher score
-          - Position contribution (0-30): center/edge zones weighted
-          - Confidence contribution (0-30): higher conf -> higher score
+        Chấm điểm:
+          - Đóng góp diện tích (0-40): diện tích lớn hơn -> điểm cao hơn
+          - Đóng góp vị trí (0-30): vùng trung tâm/cạnh được tính trọng số
+          - Đóng góp độ tin cậy (0-30): độ tin cậy cao hơn -> điểm cao hơn
         """
-        # Area score (0-40)
+        # Điểm diện tích (0-40)
         area_score = 40.0 * (1.0 - math.exp(-polygon_area_norm * 50))
 
-        # Position score (0-30)
+        # Điểm vị trí (0-30)
         center_zones = {"center", "top-center", "bottom-center"}
         edge_zones = {"top-left", "top-right", "bottom-left", "bottom-right"}
         if zone in center_zones:
@@ -288,25 +288,25 @@ class FeatureExtractor:
         else:
             pos_score = 20.0
 
-        # Confidence score (0-30)
+        # Điểm độ tin cậy (0-30)
         conf_score = 30.0 * confidence
 
         total = area_score + pos_score + conf_score
         total = max(0.0, min(total, 100.0))
 
-        # Severity level
+        # Cấp độ mức độ nghiêm trọng
         if total < 25:
             level = "Low"
-            recommendation = "Monitor only. No immediate action required."
+            recommendation = "Chỉ theo dõi. Không cần hành động ngay."
         elif total < 50:
             level = "Medium"
-            recommendation = "Flag for secondary inspection. Potential quality concern."
+            recommendation = "Đánh dấu để kiểm tra phụ. Có nguy cơ về chất lượng."
         elif total < 75:
             level = "High"
-            recommendation = "Requires review. Likely product defect."
+            recommendation = "Cần xem xét. Có khả năng là lỗi sản phẩm."
         else:
             level = "Critical"
-            recommendation = "Immediate rejection recommended. Severe product defect."
+            recommendation = "Khuyến cáo loại bỏ ngay. Lỗi sản phẩm nghiêm trọng."
 
         return {
             "score": round(total, 2),
@@ -321,7 +321,7 @@ class FeatureExtractor:
 
     @staticmethod
     def _polygon_aspect_ratio(polygon: list[list[float]]) -> float:
-        """Compute width/height ratio of polygon bounding box."""
+        """Tính tỷ lệ chiều rộng/chiều cao của bounding box đa giác."""
         xs = [p[0] for p in polygon]
         ys = [p[1] for p in polygon]
         w = max(xs) - min(xs)
@@ -329,4 +329,3 @@ class FeatureExtractor:
         if h < 1e-8:
             return 999.0
         return w / h
-

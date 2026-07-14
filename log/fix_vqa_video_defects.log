@@ -1,0 +1,124 @@
+# Log: Thêm VQA cho từng Defect trong Video (Frontend-only)
+# Date: 2026-07-14 21:47
+
+## 1. Mục đích
+Cho phép người dùng đặt câu hỏi (VQA) về từng defect cụ thể trong mỗi frame của kết quả video, 
+thay vì chỉ có 1 ô chat chung cho toàn bộ video (không hoạt động vì backend /vqa cần file ảnh, không phải video).
+
+## 2. File: docs/plan/vqa_video_defects_frontend.md (TẠO MỚI)
+- Toàn bộ file (35 dòng): Plan mô tả giải pháp frontend-only
+
+## 3. File: frontend/js/api.js (THÊM method mới)
+
+### Dòng 153-175: Thêm method `askVQAFromUrl(imageUrl, question, context)`
+- Dòng 153-160: JSDoc mô tả method
+- Dòng 161: `async askVQAFromUrl(imageUrl, question, context = null) {`
+- Dòng 163-166: Fetch ảnh từ URL, kiểm tra response ok
+- Dòng 167: `const blob = await response.blob();`
+- Dòng 168: Lấy filename từ URL
+- Dòng 169: Tạo File object từ Blob
+- Dòng 171-174: Gọi this.askVQA(file, question, context) để gửi lên /vqa
+
+## 4. File: frontend/index.html (SỬA nhiều phần)
+
+### 4a. CSS: Thêm styles VQA per defect (dòng ~361-412)
+- `.vqa-per-defect` (dòng ~361-367): Grid column full width, padding, background, border
+- `.vqa-per-defect .vqa-input-row` (dòng ~369-374): Flex row cho input + button
+- `.vqa-per-defect .vqa-input-row input` (dòng ~376-383): Input styling
+- `.vqa-per-defect .vqa-input-row input:focus` (dòng ~385-387): Focus border
+- `.vqa-per-defect .vqa-input-row button` (dòng ~389-393): Button max-width 80px
+- `.vqa-per-defect .vqa-answer` (dòng ~395-401): Answer container
+- `.vqa-per-defect .vqa-loading` (dòng ~403-408): Loading spinner
+- `.vqa-per-defect .vqa-error` (dòng ~410-415): Error styling
+
+### 4b. Hàm `displayVideoResults()` (SỬA)
+
+#### Dòng ~1220-1238: Thay vòng lặp predictions (CŨ -> MỚI)
+**CŨ (đã xóa):**
+```
+// Enriched predictions per frame
+for (let p = 0; p < preds.length; p++) {
+  const pred = preds[p];
+  html += '<div class="info-row"><span class="info-label">Loại lỗi</span>...';
+  if (pred.severity) { ... }
+}
+```
+
+**MỚI (thay thế):**
+- Dòng ~1220-1247: Vòng lặp predictions + VQA per defect
+- Dòng 1224: `const predId = 'vd_vqa_' + d + '_' + p;` — ID duy nhất cho mỗi defect
+- Dòng 1225: `const defectType = pred.defect_type || pred.class_name || 'Lỗi #' + (p + 1);`
+- Dòng 1226-1229: Hiển thị loại lỗi + mức độ
+- Dòng 1231-1245: Thêm VQA section:
+  - Input với placeholder "Hỏi về [defectType]..."
+  - onkeydown gọi `askVQAForDefect(imageUrl, predId)`
+  - Button gọi `askVQAForDefect(imageUrl, predId)`
+  - Container answer (ẩn mặc định)
+
+#### Dòng ~1291-1295: XÓA VQA Free-form Chat Box
+**CŨ (đã xóa):**
+```
+// VQA Free-form Chat Box for video
+html += '<div class="section-title">💬 Hỏi Thêm Về Ảnh</div>';
+html += '<div class="vqa-form">';
+html += '<input type="text" id="vqaQuestionInput" ...>';
+html += '<button class="btn-primary" id="vqaAskBtn" ...>Hỏi</button>';
+html += '</div>';
+html += '<div id="vqaAnswerContainer" class="vqa-answer-box" style="display: none;"></div>';
+```
+
+### 4c. Hàm `renderVideoResultsOnly()` (SỬA)
+
+#### Dòng ~1526-1545: Thay vòng lặp predictions (CŨ -> MỚI)
+**CŨ (đã xóa):**
+```
+// Enriched predictions per frame
+for (let p = 0; p < preds.length; p++) {
+  const pred = preds[p];
+  html += '<div class="info-row"><span class="info-label">Loại lỗi</span>...';
+  if (pred.severity) { ... }
+}
+```
+
+**MỚI (thay thế):**
+- Dòng ~1526-1552: Vòng lặp predictions + VQA per defect
+- Dòng 1530: `const predId = 'rv_vqa_' + d + '_' + p;` — ID duy nhất cho mỗi defect
+- Dòng 1531: `const defectType = pred.defect_type || pred.class_name || 'Lỗi #' + (p + 1);`
+- Dòng 1532-1535: Hiển thị loại lỗi + mức độ
+- Dòng 1537-1551: Thêm VQA section (tương tự displayVideoResults)
+
+#### Dòng ~1560-1590: XÓA VQA Free-form Chat Box
+**CŨ (đã xóa):**
+```
+// VQA Free-form Chat Box for video
+html += '<div class="section-title">💬 Hỏi Thêm Về Ảnh</div>';
+... (giống phần 4b)
+```
+
+### 4d. Hàm `askVQAForDefect()` (THÊM MỚI) — dòng ~1308-1350
+- Dòng 1308-1310: JSDoc
+- Dòng 1311: `function askVQAForDefect(imageUrl, predId) {`
+- Dòng 1312-1315: Lấy input + answer container từ DOM bằng predId
+- Dòng 1316: `const question = input.value.trim();`
+- Dòng 1317: `if (!question) return;`
+- Dòng 1320-1322: Hiển thị loading (spinner + "Đang phân tích...")
+- Dòng 1325: `const result = window.videoProcessingResult;`
+- Dòng 1327-1337: Build context từ prediction cụ thể:
+  - Parse `parts = predId.split('_')` → lấy `d` (frame index) + `p` (prediction index)
+  - Filter defectLogs từ result.logs
+  - Lấy `log.predictions[p]` → context = {enriched_predictions: [pred], report: log.report}
+- Dòng 1339: Gọi `apiClient.askVQAFromUrl(imageUrl, question, context)`
+- Dòng 1340-1343: Thành công → hiển thị answer, clear input
+- Dòng 1344-1346: Lỗi → hiển thị error message
+
+## 5. Tổng kết thay đổi
+
+| File | Thay đổi | Dòng |
+|------|----------|------|
+| `frontend/js/api.js` | THÊM method `askVQAFromUrl` | 153-175 |
+| `frontend/index.html` | THÊM CSS `.vqa-per-defect` | ~361-412 |
+| `frontend/index.html` | SỬA vòng lặp predictions trong `displayVideoResults` | ~1220-1247 |
+| `frontend/index.html` | XÓA VQA chat chung trong `displayVideoResults` | ~1291-1295 |
+| `frontend/index.html` | THÊM hàm `askVQAForDefect` | ~1308-1350 |
+| `frontend/index.html` | SỬA vòng lặp predictions trong `renderVideoResultsOnly` | ~1526-1552 |
+| `frontend/index.html` | XÓA VQA chat chung trong `renderVideoResultsOnly` | ~1560-1590 |

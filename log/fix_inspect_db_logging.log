@@ -1,0 +1,60 @@
+# Log: Thêm database logging cho endpoint /inspect (kiểm tra ảnh)
+# Date: 2026-07-14 22:30
+
+## 1. Mục đích
+Endpoint `/inspect` (kiểm tra ảnh) trước đây KHÔNG lưu kết quả vào database, chỉ trả JSON response.
+Sau khi sửa, kết quả kiểm tra ảnh sẽ được lưu vào bảng `inspection_logs` trong SQLite,
+giúp frontend có thể truy vấn lịch sử kiểm tra ảnh qua endpoint `GET /logs`.
+
+## 2. File sửa: backend/main.py
+
+### Dòng 527: Thêm tham số `db: Session = Depends(get_db)`
+```python
+# CŨ:
+async def inspect(file: UploadFile = File(...), conf: float = 0.25):
+# MỚI:
+async def inspect(file: UploadFile = File(...), conf: float = 0.25, db: Session = Depends(get_db)):
+```
+→ Cho phép inject database session vào hàm inspect
+
+### Dòng 593-605: Thêm code lưu InspectionLog vào database
+```python
+# Bước 5: Lưu kết quả vào database
+has_defect = len(enriched_predictions) > 0
+log_entry = InspectionLog(
+    video_name=file.filename,  # Dùng filename làm tên ảnh
+    frame_index=0,
+    timestamp=0.0,
+    has_defect=has_defect,
+    predictions=enriched_predictions,
+    saved_image_path=result_url
+)
+db.add(log_entry)
+db.commit()
+db.refresh(log_entry)
+```
+
+### Dòng 610: Thêm `log_id` vào response
+```python
+# CŨ:
+return { ... }  # Không có log_id
+# MỚI:
+return { ..., "log_id": log_entry.id }
+```
+
+## 3. Các trường được lưu trong InspectionLog
+
+| Trường | Giá trị | Mô tả |
+|--------|---------|-------|
+| `video_name` | `file.filename` | Tên file ảnh gốc |
+| `frame_index` | `0` | Luôn 0 cho ảnh tĩnh |
+| `timestamp` | `0.0` | Luôn 0 cho ảnh tĩnh |
+| `has_defect` | `len(enriched_predictions) > 0` | True nếu có lỗi |
+| `predictions` | `enriched_predictions` | Predictions đã enrich (defect_type, area, position, severity) |
+| `saved_image_path` | `result_url` | URL ảnh annotate (vd: /static/results/inspect_xxx.jpg) |
+
+## 4. Tác động
+- Frontend có thể gọi `GET /logs` để lấy lịch sử kiểm tra ảnh (trước đây chỉ có video)
+- Mỗi lần inspect ảnh → 1 record mới trong `inspection_logs`
+- Response có thêm trường `log_id` để frontend có thể tham chiếu
+- Không ảnh hưởng đến endpoint `/process_video` (vốn đã có DB logging)
