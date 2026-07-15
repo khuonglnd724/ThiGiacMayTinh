@@ -75,8 +75,7 @@ ThiGiacMayTinh/
 │   └── rule.md, description/...
 │
 ├── log/                          # Nhật ký phát triển & tích hợp
-├── requirements.txt
-└── QUICK_START.md                # Hướng dẫn nhanh (frontend)
+└── requirements.txt
 ```
 
 ---
