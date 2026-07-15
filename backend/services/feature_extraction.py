@@ -20,20 +20,20 @@ from typing import Any
 # ──────────────────────────────────────────────
 PRODUCT_DEFECT_MAP: dict[str, list[str]] = {
     "bottle": ["scratch", "crack", "dent", "broken", "contamination"],
-    "cable": ["missing_wire", "bent", "cracked_insulation", "scratch"],
+    "cable": ["missing_wire", "bent", "cracked_insulation", "scratch", "missing_cable", "poke_insulation"],
     "capsule": ["scratch", "dent", "crack", "deformation"],
     "carpet": ["hole", "cut", "stain", "thread_error"],
     "grid": ["bent", "broken", "scratch", "missing_bar"],
     "hazelnut": ["crack", "hole", "scratch", "dent"],
     "leather": ["scratch", "cut", "stain", "fold"],
     "metal_nut": ["scratch", "dent", "bent", "crack", "rust"],
-    "pill": ["scratch", "dent", "crack", "color_stain", "deformation"],
+    "pill": ["scratch", "dent", "crack", "color_stain", "deformation", "pill_type"],
     "screw": ["scratch", "bent", "crack", "thread_defect"],
-    "tile": ["crack", "chip", "stain", "glaze_defect"],
+    "tile": ["crack", "chip", "stain", "glaze_defect", "oil"],
     "toothbrush": ["bristle_defect", "scratch", "deformation"],
     "transistor": ["bent_lead", "crack", "missing_part", "scratch"],
-    "wood": ["scratch", "stain", "crack", "knot_defect"],
-    "zipper": ["broken_tooth", "scratch", "bent", "missing_tooth"],
+    "wood": ["scratch", "stain", "crack", "knot_defect", "liquid"],
+    "zipper": ["broken_tooth", "scratch", "bent", "missing_tooth", "broken_teeth", "fabric_interior"],
     "defect": ["surface_anomaly", "scratch", "crack", "dent", "contamination"],
 }
 

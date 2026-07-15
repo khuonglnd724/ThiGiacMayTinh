@@ -159,8 +159,8 @@ def discover_defect_samples(preprocess_root: Path, taxonomy: str = "composite", 
                 if not parsed:
                     continue
                 parsed_split, defect_type, source_stem = parsed
-                if parsed_split != split_name:
-                    continue
+                # Skip parsed_split matching check because all defect samples originally start with "test_" 
+                # but are now distributed across "train", "val", and "test" folders during preprocessing.
 
                 image_path = preprocess_root / "images" / split_name / class_dir.name / f"{mask_path.stem}.jpg"
                 if not image_path.exists():

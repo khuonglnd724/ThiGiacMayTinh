@@ -1,42 +1,49 @@
 label               , support, precision, recall, f1
-bent                ,      10,    1.0   , 1.0   , 1.0
-bent_lead           ,       3,    1.0   , 1.0   , 1.0
-bent_wire           ,       3,    1.0   , 1.0   , 1.0
-broken              ,       5,    1.0   , 1.0   , 1.0
-broken_large        ,       4,    1.0   , 1.0   , 1.0
-broken_small        ,       1,    1.0   , 1.0   , 1.0
-cable_swap          ,       3,    0.75  , 1.0   , 0.8571
-color               ,      25,    1.0   , 0.84  , 0.913
-combined            ,      14,    0.875 , 1.0   , 0.9333
-contamination       ,       4,    1.0   , 1.0   , 1.0
-crack               ,      30,    1.0   , 1.0   , 1.0
-cut                 ,       6,    0.4615, 1.0   , 0.6316
-cut_inner_insulation,       5,    1.0   , 1.0   , 1.0
-cut_lead            ,       3,    1.0   , 1.0   , 1.0
-cut_outer_insulation,       3,    1.0   , 1.0   , 1.0
-damaged_case        ,       3,    1.0   , 1.0   , 1.0
-defective           ,      46,    1.0   , 1.0   , 1.0
-fabric_border       ,       4,    0.6667, 1.0   , 0.8
-faulty_imprint      ,       5,    1.0   , 1.0   , 1.0
-flip                ,       5,    1.0   , 1.0   , 1.0
-fold                ,       4,    1.0   , 1.0   , 1.0
-glue                ,       4,    1.0   , 0.75  , 0.8571
-glue_strip          ,       1,    1.0   , 1.0   , 1.0
-gray_stroke         ,       5,    1.0   , 1.0   , 1.0
-hole                ,       6,    1.0   , 0.5   , 0.6667
-manipulated_front   ,       5,    1.0   , 0.6   , 0.75
-metal_contamination ,       3,    1.0   , 1.0   , 1.0
-misplaced           ,       3,    1.0   , 1.0   , 1.0
-missing_wire        ,       9,    1.0   , 1.0   , 1.0
-poke                ,       9,    1.0   , 1.0   , 1.0
-print               ,       6,    1.0   , 1.0   , 1.0
-rough               ,       9,    0.8889, 0.8889, 0.8889
-scratch             ,      16,    1.0   , 1.0   , 1.0
-scratch_head        ,       5,    1.0   , 1.0   , 1.0
-scratch_neck        ,      12,    1.0   , 1.0   , 1.0
-split_teeth         ,       1,    1.0   , 1.0   , 1.0
-squeeze             ,       7,    1.0   , 1.0   , 1.0
-squeezed_teeth      ,       6,    1.0   , 0.6667, 0.8
-thread              ,       4,    1.0   , 1.0   , 1.0
-thread_side         ,       9,    1.0   , 1.0   , 1.0
-thread_top          ,       5,    1.0   , 1.0   , 1.0
+bent                ,      70,    1.0   , 0.9714, 0.9855
+bent_lead           ,      24,    1.0   , 1.0   , 1.0
+bent_wire           ,      31,    1.0   , 1.0   , 1.0
+broken              ,      29,    1.0   , 1.0   , 1.0
+broken_large        ,      33,    0.9706, 1.0   , 0.9851
+broken_small        ,      37,    1.0   , 0.973 , 0.9863
+broken_teeth        ,      32,    0.871 , 0.8438, 0.8571
+cable_swap          ,      29,    1.0   , 0.7241, 0.84
+color               ,     160,    1.0   , 0.95  , 0.9744
+combined            ,     108,    0.7464, 0.9537, 0.8374
+contamination       ,      70,    1.0   , 1.0   , 1.0
+crack               ,     156,    0.9936, 1.0   , 0.9968
+cut                 ,      88,    0.8462, 1.0   , 0.9167
+cut_inner_insulation,      33,    1.0   , 1.0   , 1.0
+cut_lead            ,      24,    1.0   , 1.0   , 1.0
+cut_outer_insulation,      24,    1.0   , 1.0   , 1.0
+damaged_case        ,      24,    1.0   , 1.0   , 1.0
+defective           ,     229,    1.0   , 1.0   , 1.0
+fabric_border       ,      28,    0.9655, 1.0   , 0.9825
+fabric_interior     ,      27,    1.0   , 1.0   , 1.0
+faulty_imprint      ,      84,    0.9882, 1.0   , 0.9941
+flip                ,      18,    1.0   , 1.0   , 1.0
+fold                ,      28,    0.9655, 1.0   , 0.9825
+glue                ,      57,    1.0   , 1.0   , 1.0
+glue_strip          ,      29,    1.0   , 1.0   , 1.0
+gray_stroke         ,      27,    1.0   , 1.0   , 1.0
+hole                ,      81,    0.9828, 0.7037, 0.8201
+liquid              ,      24,    1.0   , 1.0   , 1.0
+manipulated_front   ,      57,    1.0   , 1.0   , 1.0
+metal_contamination ,      55,    1.0   , 1.0   , 1.0
+misplaced           ,      24,    1.0   , 1.0   , 1.0
+missing_cable       ,      29,    1.0   , 1.0   , 1.0
+missing_wire        ,      24,    1.0   , 1.0   , 1.0
+oil                 ,      29,    1.0   , 1.0   , 1.0
+pill_type           ,      15,    1.0   , 1.0   , 1.0
+poke                ,      80,    1.0   , 0.925 , 0.961
+poke_insulation     ,      24,    1.0   , 1.0   , 1.0
+print               ,      28,    1.0   , 1.0   , 1.0
+rough               ,      53,    0.9298, 1.0   , 0.9636
+scratch             ,     183,    1.0   , 0.9727, 0.9861
+scratch_head        ,      57,    1.0   , 0.9649, 0.9821
+scratch_neck        ,      60,    0.9677, 1.0   , 0.9836
+split_teeth         ,      29,    0.92  , 0.7931, 0.8519
+squeeze             ,      48,    0.9412, 1.0   , 0.9697
+squeezed_teeth      ,      27,    1.0   , 0.9259, 0.9615
+thread              ,      57,    0.9661, 1.0   , 0.9828
+thread_side         ,      55,    1.0   , 1.0   , 1.0
+thread_top          ,      55,    1.0   , 1.0   , 1.0

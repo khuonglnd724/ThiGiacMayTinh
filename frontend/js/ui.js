@@ -10,6 +10,44 @@ class UIManager {
   }
 
   /**
+   * Dịch tên loại lỗi (tiếng Anh từ backend) sang tiếng Việt.
+   * @param {string} raw - Giá trị defect_type/class_name thô từ backend
+   * @returns {string} Nhãn tiếng Việt (hoặc giữ nguyên nếu chưa có bản dịch)
+   */
+  translateDefectType(raw) {
+    if (!raw) return 'Lỗi';
+    const key = String(raw).toLowerCase();
+    const DEFECT_VN = {
+      bottle: 'Chai', cable: 'Cáp', capsule: 'Nang', carpet: 'Thảm',
+      grid: 'Lưới kim loại', hazelnut: 'Hạt phỉ', leather: 'Da', metal_nut: 'Đai ốc',
+      pill: 'Viên thuốc', screw: 'Ốc vít', tile: 'Gạch', toothbrush: 'Bàn chải đánh răng',
+      transistor: 'Transistor', wood: 'Gỗ', zipper: 'Khóa kéo',
+      broken_large: 'Vỡ lớn', broken_small: 'Vỡ nhỏ', contamination: 'Dị vật',
+      bent_wire: 'Dây bị cong', cable_swap: 'Cáp bị đảo', combined: 'Lỗi phức hợp',
+      cut_inner_insulation: 'Cắt lớp cách điện trong', cut_outer_insulation: 'Cắt lớp cách điện ngoài',
+      missing_wire: 'Thiếu dây', crack: 'Vết nứt', faulty_imprint: 'In khắc lỗi',
+      poke: 'Thủng', scratch: 'Vết xước', squeeze: 'Bị ép biến dạng',
+      color: 'Sai màu', cut: 'Vết cắt', hole: 'Lỗ thủng', thread: 'Sợi chỉ lỗi',
+      bent: 'Bị cong', broken: 'Gãy/Vỡ', metal_contamination: 'Dính tạp chất kim loại',
+      flip: 'Bị lật ngược', glue: 'Dính keo', fold: 'Gấp nếp',
+      manipulated_front: 'Bị can thiệp phía trước', scratch_head: 'Xước đầu',
+      scratch_neck: 'Xước cổ', thread_side: 'Ren cạnh', thread_top: 'Ren đỉnh',
+      glue_strip: 'Dải keo', gray_stroke: 'Vết xám', rough: 'Bề mặt thô',
+      defective: 'Lỗi', bent_lead: 'Chân bị cong', cut_lead: 'Chân bị cắt',
+      damaged_case: 'Vỏ bị hỏng', misplaced: 'Lắp sai vị trí',
+      fabric_border: 'Viền vải lỗi', split_teeth: 'Răng khóa tách rời',
+      squeezed_teeth: 'Răng khóa bị ép',
+      broken_teeth: 'Răng khóa bị gãy', fabric_interior: 'Vải bên trong lỗi',
+      liquid: 'Dính chất lỏng', missing_cable: 'Thiếu cáp', oil: 'Dính dầu',
+      pill_type: 'Sai loại viên', poke_insulation: 'Thủng lớp cách điện',
+      dent: 'Vết lõm', chip: 'Mẻ', bubble: 'Bọt khí', break: 'Gãy/Vỡ',
+      deform: 'Biến dạng', spot: 'Đốm', surface: 'Bề mặt', product: 'Sản phẩm',
+      defect: 'Lỗi', unknown: 'Không xác định', anomaly: 'Bất thường'
+    };
+    return DEFECT_VN[key] || raw;
+  }
+
+  /**
    * Khởi tạo tất cả trình lắng nghe sự kiện giao diện
    */
   init() {
@@ -200,7 +238,7 @@ class UIManager {
           (pred) => `
         <div class="card prediction-card mb-3">
           <div class="card-body">
-            <h6 class="card-title">${pred.defect_type || pred.class_name}</h6>
+            <h6 class="card-title">${this.translateDefectType(pred.defect_type || pred.class_name)}</h6>
             <div class="row">
               <div class="col-6">
                 <small><strong>Độ tin cậy:</strong> ${(pred.confidence * 100).toFixed(1)}%</small>

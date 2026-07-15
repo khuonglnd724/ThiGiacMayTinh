@@ -10,7 +10,9 @@
     "combined",
     "cut_inner_insulation",
     "cut_outer_insulation",
-    "missing_wire"
+    "missing_cable",
+    "missing_wire",
+    "poke_insulation"
   ],
   "capsule": [
     "crack",
@@ -53,6 +55,7 @@
     "combined",
     "crack",
     "faulty_imprint",
+    "pill_type",
     "scratch"
   ],
   "screw": [
@@ -66,6 +69,7 @@
     "crack",
     "glue_strip",
     "gray_stroke",
+    "oil",
     "rough"
   ],
   "toothbrush": [
@@ -80,11 +84,14 @@
   "wood": [
     "color",
     "combined",
+    "liquid",
     "scratch"
   ],
   "zipper": [
+    "broken_teeth",
     "combined",
     "fabric_border",
+    "fabric_interior",
     "rough",
     "split_teeth",
     "squeezed_teeth"

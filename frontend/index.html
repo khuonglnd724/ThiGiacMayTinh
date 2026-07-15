@@ -1132,6 +1132,95 @@
       return String(value);
     }
 
+    /**
+     * Dịch tên loại lỗi (tiếng Anh từ backend) sang tiếng Việt.
+     * @param {string} raw - Giá trị defect_type/class_name thô từ backend
+     * @returns {string} Nhãn tiếng Việt (hoặc giữ nguyên nếu chưa có bản dịch)
+     */
+    function translateDefectType(raw) {
+      if (!raw) return 'Lỗi';
+      const key = String(raw).toLowerCase();
+      const DEFECT_VN = {
+        // Sản phẩm (lớp cha)
+        'bottle': 'Chai',
+        'cable': 'Cáp',
+        'capsule': 'Nang',
+        'carpet': 'Thảm',
+        'grid': 'Lưới kim loại',
+        'hazelnut': 'Hạt phỉ',
+        'leather': 'Da',
+        'metal_nut': 'Đai ốc',
+        'pill': 'Viên thuốc',
+        'screw': 'Ốc vít',
+        'tile': 'Gạch',
+        'toothbrush': 'Bàn chải đánh răng',
+        'transistor': 'Transistor',
+        'wood': 'Gỗ',
+        'zipper': 'Khóa kéo',
+        // Loại lỗi cụ thể
+        'broken_large': 'Vỡ lớn',
+        'broken_small': 'Vỡ nhỏ',
+        'contamination': 'Dị vật',
+        'bent_wire': 'Dây bị cong',
+        'cable_swap': 'Cáp bị đảo',
+        'combined': 'Lỗi phức hợp',
+        'cut_inner_insulation': 'Cắt lớp cách điện trong',
+        'cut_outer_insulation': 'Cắt lớp cách điện ngoài',
+        'missing_wire': 'Thiếu dây',
+        'crack': 'Vết nứt',
+        'faulty_imprint': 'In khắc lỗi',
+        'poke': 'Thủng',
+        'scratch': 'Vết xước',
+        'squeeze': 'Bị ép biến dạng',
+        'color': 'Sai màu',
+        'cut': 'Vết cắt',
+        'hole': 'Lỗ thủng',
+        'thread': 'Sợi chỉ lỗi',
+        'bent': 'Bị cong',
+        'broken': 'Gãy/Vỡ',
+        'metal_contamination': 'Dính tạp chất kim loại',
+        'flip': 'Bị lật ngược',
+        'glue': 'Dính keo',
+        'fold': 'Gấp nếp',
+        'manipulated_front': 'Bị can thiệp phía trước',
+        'scratch_head': 'Xước đầu',
+        'scratch_neck': 'Xước cổ',
+        'thread_side': 'Ren cạnh',
+        'thread_top': 'Ren đỉnh',
+        'glue_strip': 'Dải keo',
+        'gray_stroke': 'Vết xám',
+        'rough': 'Bề mặt thô',
+        'defective': 'Lỗi',
+        'bent_lead': 'Chân bị cong',
+        'cut_lead': 'Chân bị cắt',
+        'damaged_case': 'Vỏ bị hỏng',
+        'misplaced': 'Lắp sai vị trí',
+        'fabric_border': 'Viền vải lỗi',
+        'split_teeth': 'Răng khóa tách rời',
+        'squeezed_teeth': 'Răng khóa bị ép',
+        'broken_teeth': 'Răng khóa bị gãy',
+        'fabric_interior': 'Vải bên trong lỗi',
+        'liquid': 'Dính chất lỏng',
+        'missing_cable': 'Thiếu cáp',
+        'oil': 'Dính dầu',
+        'pill_type': 'Sai loại viên',
+        'poke_insulation': 'Thủng lớp cách điện',
+        // Từ khóa chung
+        'dent': 'Vết lõm',
+        'chip': 'Mẻ',
+        'bubble': 'Bọt khí',
+        'break': 'Gãy/Vỡ',
+        'deform': 'Biến dạng',
+        'spot': 'Đốm',
+        'surface': 'Bề mặt',
+        'product': 'Sản phẩm',
+        'defect': 'Lỗi',
+        'unknown': 'Không xác định',
+        'anomaly': 'Bất thường'
+      };
+      return DEFECT_VN[key] || raw;
+    }
+
     function normalizeCount(value, fallback) {
       if (!fallback) fallback = 0;
       if (typeof value === 'number' && Number.isFinite(value)) return value;
@@ -1275,18 +1364,10 @@
           if (typeof sev === 'object') sev = sev.level || sev.LEVEL || 'NORMAL';
           sev = String(sev).toUpperCase().trim();
           const sevColors = { HIGH: '#f44336', MEDIUM: '#ff9800', LOW: '#ffc107', NORMAL: '#4caf50', CRITICAL: '#c62828' };
-          const DEFECT_VN = {
-            'scratch': 'Vết xước', 'dent': 'Vết lõm', 'crack': 'Vết nứt',
-            'chip': 'Mẻ', 'bubble': 'Bọt khí', 'contamination': 'Dị vật',
-            'break': 'Gãy/Vỡ', 'deform': 'Biến dạng', 'spot': 'Đốm',
-            'metal_nut': 'Đai ốc', 'screw': 'Ốc vít', 'bottle': 'Chai',
-            'cable': 'Cáp', 'surface': 'Bề mặt', 'product': 'Sản phẩm',
-            'defect': 'Lỗi'
-          };
           const rawType = p.defect_type || p.class_name || p.class || '';
-          const defectLabel = DEFECT_VN[rawType.toLowerCase()] || rawType || 'Lỗi';
+          const defectLabel = translateDefectType(rawType) || 'Lỗi';
           html += '<div class="defect-card">';
-          html += '<div class="defect-header"><div class="defect-name">#' + (i + 1) + ' ' + (p.defect_type || 'Lỗi') + '</div>';
+          html += '<div class="defect-header"><div class="defect-name">#' + (i + 1) + ' ' + defectLabel + '</div>';
           html += '<span class="severity-badge" style="background: ' + (sevColors[sev] || '#999') + ';">' + sev + '</span></div>';
           html += '<div class="defect-info">';
           html += '<div class="info-row"><span class="info-label">Độ Tin Cậy</span><span class="info-value">' + conf.toFixed(1) + '%</span></div>';
@@ -1376,7 +1457,8 @@
           for (let p = 0; p < preds.length; p++) {
             const pred = preds[p];
             const predId = 'vd_vqa_' + d + '_' + p;
-            const defectType = pred.defect_type || pred.class_name || 'Lỗi #' + (p + 1);
+            const defectTypeRaw = pred.defect_type || pred.class_name || '';
+            const defectType = defectTypeRaw ? translateDefectType(defectTypeRaw) : ('Lỗi #' + (p + 1));
             html += '<div class="info-row"><span class="info-label">Loại lỗi #' + (p + 1) + '</span><span class="info-value">' + defectType + '</span></div>';
             if (pred.severity) {
               const sevLevel = pred.severity.level || (typeof pred.severity === 'string' ? pred.severity : 'N/A');
@@ -1664,7 +1746,8 @@
           for (let p = 0; p < preds.length; p++) {
             const pred = preds[p];
             const predId = 'rv_vqa_' + d + '_' + p;
-            const defectType = pred.defect_type || pred.class_name || 'Lỗi #' + (p + 1);
+            const defectTypeRaw = pred.defect_type || pred.class_name || '';
+            const defectType = defectTypeRaw ? translateDefectType(defectTypeRaw) : ('Lỗi #' + (p + 1));
             html += '<div class="info-row"><span class="info-label">Loại lỗi #' + (p + 1) + '</span><span class="info-value">' + defectType + '</span></div>';
             if (pred.severity) {
               const sevLevel = pred.severity.level || (typeof pred.severity === 'string' ? pred.severity : 'N/A');

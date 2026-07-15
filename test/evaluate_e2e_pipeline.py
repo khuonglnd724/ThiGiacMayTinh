@@ -352,7 +352,7 @@ def main() -> int:
     cfg = build_config(parse_args())
 
     print(f"{'='*60}")
-    print("Model 2 - END-TO-END PIPELINE Evaluation")
+    print("END-TO-END PIPELINE Evaluation")
     print(f"{'='*60}")
     print(f"Seg model : {cfg.seg_model_path}")
     print(f"Cls model : {cfg.cls_model_path}")
