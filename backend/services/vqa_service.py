@@ -39,7 +39,7 @@ class VQAService:
         Args:
             image: Ảnh PIL cần phân tích
             question: Câu hỏi bằng ngôn ngữ tự nhiên
-            inspection_context: Ngữ cảnh tùy chọn gồm dự đoán đã làm giàu + ngữ cảnh báo cáo
+            inspection_context: Ngữ cảnh tùy chọn gồm dự đoán đã bổ sung thông tin + ngữ cảnh báo cáo
                                từ FeatureExtractor + InspectionReportService
 
         Returns:
@@ -173,7 +173,7 @@ class VQAService:
     # ──────────────────────────────────────────────────────────
 
     def _keyword_fallback(self, question: str) -> str:
-        """Dự phòng VQA dựa trên từ khóa gốc, được làm giàu với các mẫu tiếng Việt."""
+        """Dự phòng VQA dựa trên từ khóa gốc, được bổ sung thông tin với các mẫu tiếng Việt."""
         q_lower = question.lower()
         
         # 1. Lỗi / Hỏng / Defect

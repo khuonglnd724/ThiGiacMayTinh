@@ -14,3 +14,5 @@ runs/segment/AI/train/runs/ai-segmentation/temp01/log.txt
 log/vietnamese_localization_log.md
 AI/defect_type/output
 AI/defect_type/RUN2_COMMANDS.md
+test/output/evaluation_report.md
+docs/evaluation_assessment.md

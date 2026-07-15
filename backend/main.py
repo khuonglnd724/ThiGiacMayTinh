@@ -22,6 +22,7 @@ try:
     from .services.vqa_service import VQAService
     from .services.feature_extraction import FeatureExtractor
     from .services.inspection_report import InspectionReportService
+    from .services.defect_type_service import DefectTypeService
 except ImportError:
     from config import UPLOAD_DIR, STATIC_DIR, RESULTS_DIR
     from database import engine, get_db, Base
@@ -31,6 +32,7 @@ except ImportError:
     from services.vqa_service import VQAService
     from services.feature_extraction import FeatureExtractor
     from services.inspection_report import InspectionReportService
+    from services.defect_type_service import DefectTypeService
 
 
 def is_defect_frame(predictions):
@@ -123,6 +125,7 @@ async def lifespan(app: FastAPI):
     app.state.yolo = YOLOService()
     app.state.caption = CaptionService()
     app.state.vqa = VQAService()
+    app.state.defect_type = DefectTypeService(device="cpu")
     print("Dịch vụ AI khởi tạo thành công.")
     yield
     # Dọn dẹp nếu cần
@@ -422,14 +425,21 @@ async def process_video(
                 has_defect = is_defect_frame(predictions)
                 saved_image_path = None
                 
-                # Làm giàu dự đoán với FeatureExtraction + InspectionReport
+                # bổ sung thông tin dự đoán với FeatureExtraction + InspectionReport
                 frame_height, frame_width = frame.shape[:2]
                 enriched_predictions = predictions
                 report = None
                 if predictions:
                     try:
                         extractor = FeatureExtractor()
-                        enriched_predictions = extractor.extract(predictions, frame_width, frame_height)
+                        frame_rgb_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                        enriched_predictions = extractor.extract(
+                            predictions,
+                            frame_width,
+                            frame_height,
+                            defect_type_service=app.state.defect_type,
+                            img=frame_rgb_pil,
+                        )
                         reporter = InspectionReportService()
                         report = reporter.generate_report(
                             enriched_predictions,
@@ -557,9 +567,15 @@ async def inspect(file: UploadFile = File(...), conf: float = 0.25, db: Session 
         yolo_service: YOLOService = app.state.yolo
         predictions, annotated_bgr = yolo_service.predict(img, conf=conf, task="segment")
 
-        # Bước 2: Trích xuất đặc trưng
+        # Bước 2: Trích xuất đặc trưng (sử dụng mô hình defect-type nếu có)
         extractor = FeatureExtractor()
-        enriched_predictions = extractor.extract(predictions, img_width, img_height)
+        enriched_predictions = extractor.extract(
+            predictions,
+            img_width,
+            img_height,
+            defect_type_service=app.state.defect_type,
+            img=img,
+        )
 
         # Lưu ảnh đã chú thích
         result_url = None
@@ -606,7 +622,7 @@ async def inspect(file: UploadFile = File(...), conf: float = 0.25, db: Session 
         db.commit()
         db.refresh(log_entry)
 
-        # Phản hồi cuối cùng: dự đoán đã làm giàu + báo cáo + VQA + log_id
+        # Phản hồi cuối cùng: dự đoán đã bổ sung thông tin + báo cáo + VQA + log_id
         return {
             "status": "success",
             "filename": file.filename,

@@ -1,0 +1,92 @@
+{
+  "bottle": [
+    "broken_large",
+    "broken_small",
+    "contamination"
+  ],
+  "cable": [
+    "bent_wire",
+    "cable_swap",
+    "combined",
+    "cut_inner_insulation",
+    "cut_outer_insulation",
+    "missing_wire"
+  ],
+  "capsule": [
+    "crack",
+    "faulty_imprint",
+    "poke",
+    "scratch",
+    "squeeze"
+  ],
+  "carpet": [
+    "color",
+    "cut",
+    "hole",
+    "thread"
+  ],
+  "grid": [
+    "bent",
+    "broken",
+    "metal_contamination"
+  ],
+  "hazelnut": [
+    "crack",
+    "cut",
+    "hole",
+    "print"
+  ],
+  "leather": [
+    "color",
+    "cut",
+    "fold",
+    "glue",
+    "poke"
+  ],
+  "metal_nut": [
+    "bent",
+    "color",
+    "flip"
+  ],
+  "pill": [
+    "color",
+    "combined",
+    "crack",
+    "faulty_imprint",
+    "scratch"
+  ],
+  "screw": [
+    "manipulated_front",
+    "scratch_head",
+    "scratch_neck",
+    "thread_side",
+    "thread_top"
+  ],
+  "tile": [
+    "crack",
+    "glue_strip",
+    "gray_stroke",
+    "rough"
+  ],
+  "toothbrush": [
+    "defective"
+  ],
+  "transistor": [
+    "bent_lead",
+    "cut_lead",
+    "damaged_case",
+    "misplaced"
+  ],
+  "wood": [
+    "color",
+    "combined",
+    "scratch"
+  ],
+  "zipper": [
+    "combined",
+    "fabric_border",
+    "rough",
+    "split_teeth",
+    "squeezed_teeth"
+  ]
+}

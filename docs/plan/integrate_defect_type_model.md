@@ -14,7 +14,7 @@ giúp frontend nhận được loại lỗi chính xác hơn từ model thay vì
   (đã tồn tại, load được qua `backend/config.get_defect_type_path()`).
 
 ## Output
-- Mỗi prediction được làm giàu thêm trường `defect_type` (từ label model, đã qua
+- Mỗi prediction được bổ sung thông tin thêm trường `defect_type` (từ label model, đã qua
   `_label_to_defect_type` → với taxonomy `global` trả đúng tên loại lỗi, ví dụ `scratch`),
   `defect_type_confidence` (độ tin cậy model) và `defect_type_topk` (top-3 dự đoán).
 - Giữ nguyên luồng `InspectionReportService` / `VQAService` tiêu thụ `defect_type` như cũ.

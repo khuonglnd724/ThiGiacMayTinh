@@ -1,6 +1,6 @@
 import json
 
-with open('AI/test/output/evaluation_report.json', 'r') as f:
+with open('test/output/evaluation_report.json', 'r') as f:
     data = json.load(f)
     
 print('=== OVERALL MODEL PERFORMANCE ===')

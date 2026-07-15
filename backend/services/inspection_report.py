@@ -1,7 +1,7 @@
 """
 Dịch Vụ Báo Cáo Kiểm Tra
 =========================
-Tạo báo cáo kiểm tra có cấu trúc dựa trên các dự đoán đã làm giàu
+Tạo báo cáo kiểm tra có cấu trúc dựa trên các dự đoán đã bổ sung thông tin
 từ Module Trích Xuất Đặc Trưng.
 
 Sử dụng logic dựa trên quy tắc để tổng hợp kết quả phát hiện lỗi và cung cấp
@@ -15,7 +15,7 @@ from typing import Any
 
 class InspectionReportService:
     """
-    Tạo báo cáo kiểm tra có thể đọc được từ các dự đoán đã làm giàu.
+    Tạo báo cáo kiểm tra có thể đọc được từ các dự đoán đã bổ sung thông tin.
 
     Cách dùng:
         reporter = InspectionReportService()

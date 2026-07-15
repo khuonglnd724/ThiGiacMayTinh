@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import math
 from pathlib import Path
 from typing import Any
@@ -7,6 +8,9 @@ from typing import Any
 import cv2
 import numpy as np
 from PIL import Image
+
+import sys, pathlib
+sys.path.append(str(pathlib.Path(__file__).resolve().parent.parent.parent))
 
 try:
     from backend.config import get_defect_type_path
@@ -21,6 +25,12 @@ except ImportError:
     predict_pil = None  # type: ignore[assignment]
     top_k_predictions = None  # type: ignore[assignment]
 
+# Ánh xạ lớp sản phẩm (cha) -> các loại lỗi HỢP LỆ được model huấn luyện cho lớp đó.
+# Sinh tự động từ manifest của tập train (AI/defect_type/output/manifest.csv).
+# Mục đích: chặn model 2 dự đoán một loại lỗi không tồn tại ở lớp sản phẩm tương ứng
+# (ví dụ: bottle không bao giờ có "cable_swap" / "missing_wire").
+_ALLOWED_MAP_PATH = Path(__file__).resolve().parent.parent.parent / "AI" / "defect_type" / "class_defect_allowed.json"
+
 
 class DefectTypeService:
     def __init__(self, device: str = "cpu") -> None:
@@ -28,6 +38,7 @@ class DefectTypeService:
         self.model_path = Path(get_defect_type_path())
         self.model = None
         self.metadata = None
+        self.allowed_map = self._load_allowed_map()
 
         if self.model_path.exists() and load_checkpoint is not None:
             try:
@@ -36,6 +47,16 @@ class DefectTypeService:
             except Exception as exc:
                 print(f"Failed to load defect-type classifier: {exc}")
 
+    @staticmethod
+    def _load_allowed_map() -> dict[str, list[str]]:
+        if _ALLOWED_MAP_PATH.exists():
+            try:
+                with open(_ALLOWED_MAP_PATH, "r", encoding="utf-8") as fh:
+                    return json.load(fh)
+            except Exception as exc:
+                print(f"Failed to load class->defect allowed map: {exc}")
+        return {}
+
     def predict(self, image: Image.Image | np.ndarray, detection: dict[str, Any] | None = None, top_k: int = 3) -> dict[str, Any]:
         if self.model is None or self.metadata is None or predict_pil is None:
             return {
@@ -43,30 +64,79 @@ class DefectTypeService:
                 "defect_type": "unknown",
                 "confidence": 0.0,
                 "top_k": [],
+                "constrained": False,
             }
+
+        class_name = None
+        if detection:
+            class_name = detection.get("class_name")
+        allowed_labels = self._allowed_labels_for(class_name)
 
         pil_image = self._prepare_image(image)
         roi = self._extract_roi(pil_image, detection)
         prediction = predict_pil(self.model, roi, image_size=self.metadata.image_size, device=self.device)
 
-        label_index = prediction["class_id"]
-        label = self.metadata.label_names[label_index]
+        probs = np.asarray(prediction["probabilities"], dtype=np.float32)
+        label_names = self.metadata.label_names
+
+        # ── Ràng buộc theo lớp cha ──────────────────────────────
+        # Nếu có danh sách loại lỗi hợp lệ, chỉ xét những label đó.
+        # Điều này ngăn model trả về một loại lỗi không tồn tại ở lớp sản phẩm.
+        constrained = bool(allowed_labels)
+        if constrained:
+            allowed_set = set(allowed_labels)
+            candidate_indices = [
+                i for i, name in enumerate(label_names) if name in allowed_set
+            ]
+            if candidate_indices:
+                best_idx = max(candidate_indices, key=lambda i: probs[i])
+                label = label_names[best_idx]
+                confidence = float(probs[best_idx])
+            else:
+                # Không có label nào khớp (class lạ) -> fallback unconstrained
+                constrained = False
+                best_idx = int(np.argmax(probs))
+                label = label_names[best_idx]
+                confidence = float(probs[best_idx])
+        else:
+            best_idx = int(np.argmax(probs))
+            label = label_names[best_idx]
+            confidence = float(probs[best_idx])
+
         defect_type = self._label_to_defect_type(label)
+
+        # ── Top-k chỉ trong các label hợp lệ ────────────────────
         top_predictions = []
         if top_k_predictions is not None:
-            probs = np.asarray(prediction["probabilities"], dtype=np.float32)
             import torch
 
-            top_predictions = top_k_predictions(torch.tensor(probs), self.metadata.label_names, top_k=top_k)
+            if constrained:
+                masked = torch.tensor(probs).clone()
+                mask = torch.tensor(
+                    [name in allowed_set for name in label_names], dtype=torch.bool
+                )
+                masked[~mask] = -1.0
+                top_predictions = top_k_predictions(masked, label_names, top_k=top_k)
+            else:
+                top_predictions = top_k_predictions(torch.tensor(probs), label_names, top_k=top_k)
             for item in top_predictions:
                 item["defect_type"] = self._label_to_defect_type(item["label"])
 
         return {
             "label": label,
             "defect_type": defect_type,
-            "confidence": prediction["confidence"],
+            "confidence": confidence,
             "top_k": top_predictions,
+            "constrained": constrained,
+            "class_name": class_name,
         }
+
+    def _allowed_labels_for(self, class_name: str | None) -> list[str]:
+        """Trả về danh sách loại lỗi hợp lệ cho lớp sản phẩm (cha).
+        Nếu class_name None/không có trong map -> [] (không ràng buộc)."""
+        if not class_name or not self.allowed_map:
+            return []
+        return list(self.allowed_map.get(class_name.lower(), []))
 
     def _prepare_image(self, image: Image.Image | np.ndarray) -> Image.Image:
         if isinstance(image, Image.Image):

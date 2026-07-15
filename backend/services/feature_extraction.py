@@ -1,7 +1,7 @@
 """
 Module Trích Xuất Đặc Trưng
 ============================
-Trích xuất các đặc trưng đã làm giàu từ kết quả dự đoán phân vùng YOLO:
+Trích xuất các đặc trưng đã bổ sung thông tin từ kết quả dự đoán phân vùng YOLO:
   - Phân loại loại lỗi
   - Tính diện tích (pixel & chuẩn hóa)
   - Phân tích vị trí (vùng tương đối)
@@ -56,7 +56,7 @@ POSITION_ZONES = {
 
 class FeatureExtractor:
     """
-    Trích xuất các đặc trưng đã làm giàu từ kết quả dự đoán phân vùng YOLO.
+    Trích xuất các đặc trưng đã bổ sung thông tin từ kết quả dự đoán phân vùng YOLO.
 
     Cách dùng:
         extractor = FeatureExtractor()
@@ -71,17 +71,23 @@ class FeatureExtractor:
         predictions: list[dict[str, Any]],
         img_width: int,
         img_height: int,
+        defect_type_service: Any | None = None,
+        img: Any | None = None,
     ) -> list[dict[str, Any]]:
         """
-        Làm giàu các dự đoán thô với trích xuất đặc trưng.
+        bổ sung thông tin các dự đoán thô với trích xuất đặc trưng.
 
         Args:
             predictions: Danh sách dự đoán thô từ YOLOService
             img_width: Chiều rộng ảnh gốc (px)
             img_height: Chiều cao ảnh gốc (px)
+            defect_type_service: (tùy chọn) DefectTypeService để suy luận defect_type
+                bằng mô hình resnet18-global thay vì heuristic. Nếu None hoặc model
+                không load được, giữ heuristic cũ (_classify_defect_type).
+            img: (tùy chọn) PIL Image RGB gốc, cần thiết để cắt ROI cho model.
 
         Returns:
-            Danh sách dự đoán đã làm giàu với:
+            Danh sách dự đoán đã bổ sung thông tin với:
                 - defect_type, area (px, %), position, size_class, severity
         """
         enriched: list[dict[str, Any]] = []
@@ -91,7 +97,21 @@ class FeatureExtractor:
             item = dict(pred)  # shallow copy
 
             # ── 1. Loại lỗi ─────────────────────────────────
-            item["defect_type"] = self._classify_defect_type(pred)
+            if (
+                defect_type_service is not None
+                and getattr(defect_type_service, "model", None) is not None
+                and img is not None
+            ):
+                dt = defect_type_service.predict(img, detection=pred, top_k=3)
+                item["defect_type"] = dt["defect_type"]
+                item["defect_type_confidence"] = dt["confidence"]
+                item["defect_type_topk"] = dt["top_k"]
+                # constrained=True: model đã bị ràng buộc bởi lớp sản phẩm (cha)
+                # nên không thể trả loại lỗi không tồn tại ở lớp đó.
+                item["defect_type_constrained"] = dt.get("constrained", False)
+                item["defect_type_class"] = dt.get("class_name")
+            else:
+                item["defect_type"] = self._classify_defect_type(pred)
 
             # ── 2. Diện tích (diện tích đa giác + diện tích bbox) ─────────────
             polygon_area_norm, bbox_area_norm = self._compute_area(pred)

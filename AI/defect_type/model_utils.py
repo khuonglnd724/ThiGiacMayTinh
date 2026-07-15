@@ -90,7 +90,9 @@ def build_image_transform(image_size: int, train: bool) -> transforms.Compose:
 
 
 def load_checkpoint(checkpoint_path: str | Path, device: str | torch.device = "cpu") -> tuple[nn.Module, DefectTypeMetadata]:
-    payload = torch.load(checkpoint_path, map_location=device)
+    # weights_only=False: checkpoint là file cục bộ đáng tin cậy, chứa metadata
+    # (numpy scalar) không nằm trong whitelist mặc định của torch.load (PyTorch >= 2.6).
+    payload = torch.load(checkpoint_path, map_location=device, weights_only=False)
     metadata = DefectTypeMetadata(
         architecture=str(payload["architecture"]),
         taxonomy=str(payload["taxonomy"]),

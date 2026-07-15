@@ -1,0 +1,162 @@
+================================================================================
+LOG: SỬA LỖI MODEL 2 DỰ ĐOÁN LOẠI LỖI KHÔNG TỒN TẠI Ở LỚP SẢN PHẨM (CHA)
+================================================================================
+Ngày:        2026-07-15
+Rule áp dụng: docs/rule.md (rule 1: xuất log chi tiết mọi thêm/xóa/sửa code & docs)
+File liên quan:
+  - Thêm mới : AI/defect_type/class_defect_allowed.json
+  - Sửa      : backend/services/defect_type_service.py
+  - Sửa      : backend/services/feature_extraction.py
+  - Test     : (chạy inline, không lưu file test)
+
+--------------------------------------------------------------------------------
+1. VẤN ĐỀ (BUG)
+--------------------------------------------------------------------------------
+Model 2: runs/classify/AI/defect-type/resnet18-global/weights/best.pt
+  - Kiến trúc ResNet18, taxonomy = "global", 41 lớp (label 0..40).
+  - Được huấn luyện gộp chung mọi loại lỗi của TẤT CẢ lớp sản phẩm (bottle,
+    cable, capsule, ...) thành 1 bộ 41 nhãn.
+  - Model CHỈ nhận ảnh ROI (crop), KHÔNG nhận class_name (lớp cha).
+  => Khi chạy trên 1 đối tượng có class_name cụ thể, model có thể trả về một
+     loại lỗi nằm ngoài tập lỗi hợp lệ của lớp đó.
+  Ví dụ thực tế (test trên test_image.jpg, class_name='bottle'):
+    - Không ràng buộc: top-1 = "misplaced" (conf 0.278) -> "misplaced" KHÔNG
+      thuộc tập lỗi của bottle. Đây chính là lỗi được báo cáo.
+
+--------------------------------------------------------------------------------
+2. CÁC THAY ĐỔI ĐÃ THỰC HIỆN
+--------------------------------------------------------------------------------
+
+### 2.1 THÊM MỚI: AI/defect_type/class_defect_allowed.json
+  - Nguồn sinh: tự động từ AI/defect_type/output/manifest.csv
+    (trường class_name -> label, chỉ lấy các label thực tế có trong tập train).
+  - Cấu trúc: JSON dict { "<class_name>": [<label1>, <label2>, ...], ... }
+  - 15 lớp sản phẩm, 60 tham chiếu label. Ví dụ:
+      "bottle":  ["broken_large", "broken_small", "contamination"]
+      "cable":   ["bent_wire","cable_swap","combined","cut_inner_insulation",
+                  "cut_outer_insulation","missing_wire"]
+      "capsule": ["crack","faulty_imprint","poke","scratch","squeeze"]
+      "carpet":  ["color","cut","hole","thread"]
+      "grid":    ["bent","broken","metal_contamination"]
+      "hazelnut":["crack","cut","hole","print"]
+      "leather": ["color","cut","fold","glue","poke"]
+      "metal_nut":["bent","color","flip"]
+      "pill":    ["color","combined","crack","faulty_imprint","scratch"]
+      "screw":   ["manipulated_front","scratch_head","scratch_neck",
+                  "thread_side","thread_top"]
+      "tile":    ["crack","glue_strip","gray_stroke","rough"]
+      "toothbrush":["defective"]
+      "transistor":["bent_lead","cut_lead","damaged_case","misplaced"]
+      "wood":    ["color","combined","scratch"]
+      "zipper":  ["combined","fabric_border","rough","split_teeth","squeezed_teeth"]
+  - Mục đích: làm "tập cha" (parent set) mà model 2 thiếu -> ràng buộc output.
+
+### 2.2 SỬA: backend/services/defect_type_service.py
+  (a) THÊM import json
+        - Dòng 3 : import json
+  (b) THÊM hằng đường dẫn map + comment (dòng 28-32)
+        - Dòng 28-31: comment giải thích mục đích (chặn model trả lỗi không tồn tại)
+        - Dòng 32    : _ALLOWED_MAP_PATH = Path(__file__).resolve().parent.parent.parent
+                            / "AI" / "defect_type" / "class_defect_allowed.json"
+  (c) Trong __init__ (dòng 35-48)
+        - Dòng 41    : THÊM self.allowed_map = self._load_allowed_map()
+        - Dòng 50-58 : THÊM phương thức tĩnh _load_allowed_map():
+            @staticmethod
+            def _load_allowed_map() -> dict[str, list[str]]:
+                if _ALLOWED_MAP_PATH.exists():
+                    try:
+                        with open(_ALLOWED_MAP_PATH, "r", encoding="utf-8") as fh:
+                            return json.load(fh)
+                    except Exception as exc:
+                        print(f"Failed to load class->defect allowed map: {exc}")
+                return {}
+  (d) SỬA hàm predict() (dòng 60-132)
+        - Dòng 67    : THÊM "constrained": False trong nhánh model None.
+        - Dòng 70-73 : THÊM đọc class_name & allowed_labels:
+            class_name = None
+            if detection:
+                class_name = detection.get("class_name")
+            allowed_labels = self._allowed_labels_for(class_name)
+        - Dòng 82-104: THÊM logic ràng buộc theo lớp cha:
+            constrained = bool(allowed_labels)                  # dòng 85
+            if constrained:                                     # dòng 86
+                allowed_set = set(allowed_labels)               # dòng 87
+                candidate_indices = [i for i, name in enumerate(label_names)
+                                     if name in allowed_set]    # dòng 88-90
+                if candidate_indices:                           # dòng 91
+                    best_idx = max(candidate_indices, key=lambda i: probs[i])
+                    label = label_names[best_idx]               # dòng 92-93
+                    confidence = float(probs[best_idx])
+                else:                                           # dòng 95
+                    # class lạ -> fallback unconstrained
+                    constrained = False                         # dòng 97
+                    best_idx = int(np.argmax(probs))            # dòng 98
+                    label = label_names[best_idx]               # dòng 99
+                    confidence = float(probs[best_idx])
+            else:                                               # dòng 101
+                best_idx = int(np.argmax(probs))                # dòng 102
+                label = label_names[best_idx]                   # dòng 103
+                confidence = float(probs[best_idx])             # dòng 104
+        - Dòng 108-123: SỬA phần top_k — nếu constrained thì mask label không hợp
+          lệ về -1 (dòng 113-119) trước khi lấy top_k; ngược lại giữ nguyên (dòng 121).
+        - Dòng 125-132: THÊM vào dict trả về:
+            "constrained": constrained,      # dòng 130
+            "class_name": class_name,        # dòng 131
+  (e) THÊM phương thức mới _allowed_labels_for() (dòng 134-139):
+        def _allowed_labels_for(self, class_name: str | None) -> list[str]:
+            if not class_name or not self.allowed_map:
+                return []
+            return list(self.allowed_map.get(class_name.lower(), []))
+
+### 2.3 SỬA: backend/services/feature_extraction.py
+  - Trong FeatureExtractor.extract() (vòng for bắt đầu dòng 96), khối gọi model
+    (dòng 100-112), THÊM 2 dòng minh bạch sau dòng 108:
+        item["defect_type_constrained"] = dt.get("constrained", False)  # dòng 111
+        item["defect_type_class"] = dt.get("class_name")                # dòng 112
+    Các dòng giữ nguyên:
+        dòng 105: dt = defect_type_service.predict(img, detection=pred, top_k=3)
+        dòng 106: item["defect_type"] = dt["defect_type"]
+        dòng 107: item["defect_type_confidence"] = dt["confidence"]
+        dòng 108: item["defect_type_topk"] = dt["top_k"]
+  - Lưu ý: detection=pred (dòng 105) đã chứa "class_name" từ YOLOService, nên
+    ràng buộc tự động có hiệu lực khi model được dùng (dòng 72 ở service).
+
+--------------------------------------------------------------------------------
+3. KIỂM CHỨNG (TEST END-TO-END)
+--------------------------------------------------------------------------------
+Chạy qua .venv (backend có ultralytics):
+  from backend.services.defect_type_service import DefectTypeService
+  svc = DefectTypeService(device='cpu')   # Loaded best.pt: True
+
+  - svc._allowed_labels_for('bottle')
+      -> ['broken_large','broken_small','contamination']   OK
+  - svc._allowed_labels_for('cable')
+      -> ['bent_wire','cable_swap','combined','cut_inner_insulation',
+          'cut_outer_insulation','missing_wire']            OK
+  - svc._allowed_labels_for('fridge')  -> [] (lớp lạ, không ràng buộc) OK
+
+  Case class_name='bottle' trên test_image.jpg:
+    CONSTRAINED  -> contamination (conf 0.042), constrained=True
+    topk         -> [('contamination',0.042),('broken_small',0.013),
+                     ('broken_large',0.011)]  (chỉ label hợp lệ)
+    UNCONSTRAINED-> misplaced (conf 0.278)  <-- chính là bug cũ
+  => assert defect_type in allowed_set  PASS. Không còn leak loại lỗi.
+
+--------------------------------------------------------------------------------
+4. TÁC ĐỘNG & AN TOÀN
+--------------------------------------------------------------------------------
+  - Không thay đổi heuristic cũ (_classify_defect_type) -> vẫn là fallback khi
+    model null hoặc không có img.
+  - Khi class_name thiếu/không có trong map -> constrained=False (giữ hành vi
+    cũ, không crash).
+  - API predict() thêm 2 key (constrained, class_name); feature_extraction thêm
+    2 key (defect_type_constrained, defect_type_class) -> backward compatible
+    với InspectionReportService / VQAService (chỉ tiêu thụ defect_type).
+
+--------------------------------------------------------------------------------
+5. FILE ĐÃ TẠO / SỬA (TÓM TẮT)
+--------------------------------------------------------------------------------
+  [MỚI]  AI/defect_type/class_defect_allowed.json
+  [SỬA]  backend/services/defect_type_service.py
+  [SỬA]  backend/services/feature_extraction.py
+================================================================================

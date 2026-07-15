@@ -4,22 +4,22 @@ evaluate.py – Test & evaluate a YOLO segmentation model on the MVTec AD test s
 Usage examples
 --------------
     # Full evaluation (all metrics, no overlays)
-    python AI/test/evaluate.py
+    python test/evaluate.py
 
     # Single-image debug
-    python AI/test/evaluate.py --single-image AI/preprocess/output/images/test/bottle/000.png
+    python test/evaluate.py --single-image AI/preprocess/output/images/test/bottle/000.png
 
     # Save prediction overlays
-    python AI/test/evaluate.py --save-images
+    python test/evaluate.py --save-images
 
     # Custom thresholds
-    python AI/test/evaluate.py --conf 0.5 --iou 0.5
+    python test/evaluate.py --conf 0.5 --iou 0.5
 
     # Compare multiple runs
-    python AI/test/evaluate.py --compare-runs
+    python test/evaluate.py --compare-runs
 
     # Use CPU
-    python AI/test/evaluate.py --device cpu
+    python test/evaluate.py --device cpu
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ DEFAULT_MODEL = (
     "runs/segment/AI/train/runs/ai-segmentation/segmentation/weights/best.pt"
 )
 DEFAULT_DATA_YAML = "AI/train/data.yaml"
-DEFAULT_OUTPUT_DIR = "AI/test/output"
+DEFAULT_OUTPUT_DIR = "test/output"
 DEFAULT_IMAGE_SIZE = 640
 DEFAULT_CONF = 0.25
 DEFAULT_IOU = 0.45
