@@ -99,4 +99,15 @@
   - Slide 3: Công thức tính điểm độ nghiêm trọng (Severity weights) & Trạng thái kết luận QC (PASS/FLAG/REJECT).
   - Slide 4: Quy trình 3 tầng phân cấp xử lý hỏi đáp VQA (Context-aware -> ViLT -> Keyword Fallback).
 
+---
+
+## 2026-07-16 12:21
+
+### Task: Tạo file thuyết trình PowerPoint 10 slide hoàn chỉnh (.pptx)
+- **File**: `generate_pptx.py` [NEW], `presentation_ai_qc.pptx` [NEW]
+- **Sửa**:
+  - Viết kịch bản tự động kiểm tra và cài đặt thư viện `python-pptx` và sinh file PowerPoint widescreen (16:9) tự động.
+  - Thiết kế và xuất bản tệp `presentation_ai_qc.pptx` gồm 10 slide chuyên nghiệp (Title, Problem, Architecture, Dataset, Augmentation, YOLO11-seg, ResNet18, Feature Extraction, VQA, Conclusion) theo đúng nội dung và hướng dẫn slide, sử dụng bảng màu Slate & Indigo tinh tế.
+
+
 
