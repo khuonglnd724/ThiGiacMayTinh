@@ -37,6 +37,14 @@ def create_presentation():
     c_text_white = RGBColor(255, 255, 255)
     c_bg_light = RGBColor(248, 250, 252)
     
+    # Màu sắc QC
+    c_green = RGBColor(16, 185, 129)
+    c_amber = RGBColor(245, 158, 11)
+    c_red = RGBColor(239, 68, 68)
+    
+    # Đường dẫn thư mục ảnh chạy train
+    run_dir = "runs/segment/AI/train/runs/ai-segmentation/segmentation-yolo11n-12-07-0h"
+    
     def set_slide_background(slide, color):
         background = slide.background
         fill = background.fill
@@ -44,7 +52,6 @@ def create_presentation():
         fill.fore_color.rgb = color
 
     def add_slide_header(slide, title_text):
-        # Tạo shape tiêu đề
         title_box = slide.shapes.add_textbox(Inches(0.75), Inches(0.4), Inches(11.83), Inches(0.8))
         tf = title_box.text_frame
         tf.word_wrap = True
@@ -59,7 +66,7 @@ def create_presentation():
         line = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.75), Inches(1.2), Inches(11.83), Inches(0.04))
         line.fill.solid()
         line.fill.fore_color.rgb = c_indigo
-        line.line.color.rgb = c_indigo
+        line.line.fill.background()
 
     # -------------------------------------------------------------
     # SLIDE 1: Title Slide (Dark Theme)
@@ -67,7 +74,7 @@ def create_presentation():
     s1 = prs.slides.add_slide(blank_layout)
     set_slide_background(s1, c_dark_slate)
     
-    # Vẽ khối trang trí bên trái
+    # Khối trang trí bên trái
     left_bar = s1.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), Inches(0.4), Inches(7.5))
     left_bar.fill.solid()
     left_bar.fill.fore_color.rgb = c_indigo
@@ -83,7 +90,6 @@ def create_presentation():
     p.font.size = Pt(40)
     p.font.bold = True
     p.font.color.rgb = c_text_white
-    p.alignment = PP_ALIGN.LEFT
     
     # Text box tiêu đề phụ
     sub_box = s1.shapes.add_textbox(Inches(1.2), Inches(4.2), Inches(11.0), Inches(1.0))
@@ -96,7 +102,6 @@ def create_presentation():
     p_sub.font.italic = True
     p_sub.font.color.rgb = c_cyan
     
-    # Thông tin nhóm
     info_box = s1.shapes.add_textbox(Inches(1.2), Inches(5.8), Inches(11.0), Inches(0.8))
     p_info = info_box.text_frame.paragraphs[0]
     p_info.text = "Báo cáo Đồ án tốt nghiệp / Nghiên cứu khoa học chuyên ngành Thị giác Máy tính"
@@ -111,7 +116,7 @@ def create_presentation():
     set_slide_background(s2, c_bg_light)
     add_slide_header(s2, "1. Đặt Vấn Đề & Mục Tiêu Dự Án")
     
-    # Cột bên trái: Thực trạng & Thách thức
+    # Cột bên trái: Thực trạng
     col1 = s2.shapes.add_textbox(Inches(0.75), Inches(1.8), Inches(5.5), Inches(4.8))
     tf1 = col1.text_frame
     tf1.word_wrap = True
@@ -123,8 +128,8 @@ def create_presentation():
     p1.font.color.rgb = c_indigo
     
     bullets1 = [
-        "Kiểm tra chất lượng (QC) thủ công bằng mắt dễ gây sai sót do sự mệt mỏi của người vận hành.",
-        "Thiếu báo cáo định lượng về kích thước lỗi, diện tích phủ của lỗi và vị trí lỗi cụ thể trên sản phẩm.",
+        "Kiểm tra chất lượng (QC) thủ công bằng mắt dễ gây sai sót do sự mệt mỏi của con người.",
+        "Thiếu số liệu định lượng về kích thước lỗi, diện tích phủ của lỗi và vị trí lỗi cụ thể trên sản phẩm.",
         "Tốc độ kiểm định chậm, gây tắc nghẽn dây chuyền sản xuất hàng loạt.",
         "Khó lưu trữ lịch sử để cải tiến quy trình QC."
     ]
@@ -136,7 +141,7 @@ def create_presentation():
         p.font.color.rgb = c_text_main
         p.space_before = Pt(14)
 
-    # Cột bên phải: Giải pháp & Mục tiêu
+    # Cột bên phải: Mục tiêu
     col2 = s2.shapes.add_textbox(Inches(6.8), Inches(1.8), Inches(5.8), Inches(4.8))
     tf2 = col2.text_frame
     tf2.word_wrap = True
@@ -162,135 +167,129 @@ def create_presentation():
         p.space_before = Pt(14)
 
     # -------------------------------------------------------------
-    # SLIDE 3: Kiến trúc hệ thống
+    # SLIDE 3: Kiến trúc hệ thống (Sơ đồ khối vẽ bằng code)
     # -------------------------------------------------------------
     s3 = prs.slides.add_slide(blank_layout)
     set_slide_background(s3, c_bg_light)
-    add_slide_header(s3, "2. Kiến Trúc Hệ Thống Tổng Thể")
+    add_slide_header(s3, "2. Kiến Trúc Luồng Xử Lý Hệ Thống")
     
-    # Vẽ các khối đại diện cho 3 lớp kiến trúc chính
-    x_positions = [Inches(0.75), Inches(4.8), Inches(8.85)]
-    widths = [Inches(3.6), Inches(3.6), Inches(3.7)]
-    titles = [
-        "💻 CLIENT (GIAO DIỆN)", 
-        "⚡ FASTAPI BACKEND", 
-        "🔮 PIPELINE AI & LOGIC"
-    ]
-    descs = [
-        [
-            "Giao diện HTML/CSS/JS thuần hiện đại",
-            "Công cụ Upload ảnh phân tích QC trực quan",
-            "Màn hình mô phỏng băng chuyền động Live",
-            "Khung chat VQA trò chuyện trực tiếp với AI"
-        ],
-        [
-            "API Server xây dựng trên FastAPI siêu tốc",
-            "Xử lý kết nối, định tuyến yêu cầu HTTP",
-            "Lịch sử kiểm định lưu vào cơ sở dữ liệu SQLite",
-            "Giao diện RESTful tích hợp thuận tiện"
-        ],
-        [
-            "YOLO11-seg: Phát hiện và phủ mặt nạ lỗi",
-            "ResNet18: Phân loại loại lỗi chi tiết (ROI)",
-            "Trích xuất đặc trưng diện tích, lưới vị trí",
-            "Hệ quyết định QC ĐẠT/CẢNH BÁO/KHÔNG ĐẠT"
-        ]
-    ]
+    # Vẽ các Block node hệ thống
+    x_positions = [Inches(0.75), Inches(3.25), Inches(5.75), Inches(8.25), Inches(10.75)]
+    titles = ["💻 Client\n(HTML/JS)", "⚡ FastAPI\nBackend", "🔮 Model 1\nYOLO11-seg", "🔍 Model 2\nResNet18", "📊 Logic\nQC & VQA"]
+    colors = [c_dark_slate, c_dark_slate, c_indigo, c_cyan, c_green]
     
-    for i in range(3):
-        card = s3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x_positions[i], Inches(2.0), widths[i], Inches(4.5))
-        card.fill.solid()
-        card.fill.fore_color.rgb = c_dark_slate if i != 2 else c_indigo
-        card.line.color.rgb = c_indigo
+    # Vẽ các khối nút
+    for i in range(5):
+        node = s3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x_positions[i], Inches(2.2), Inches(1.8), Inches(1.4))
+        node.fill.solid()
+        node.fill.fore_color.rgb = colors[i]
+        node.line.color.rgb = colors[i]
         
-        tf = card.text_frame
+        tf = node.text_frame
         tf.word_wrap = True
-        
         p = tf.paragraphs[0]
         p.text = titles[i]
         p.font.name = 'Inter'
-        p.font.size = Pt(18)
+        p.font.size = Pt(14)
         p.font.bold = True
         p.font.color.rgb = c_text_white
         p.alignment = PP_ALIGN.CENTER
-        p.space_after = Pt(20)
         
-        for item in descs[i]:
-            p2 = tf.add_paragraph()
-            p2.text = "- " + item
-            p2.font.name = 'Inter'
-            p2.font.size = Pt(13)
-            p2.font.color.rgb = RGBColor(226, 232, 240)
-            p2.space_before = Pt(8)
-            p2.alignment = PP_ALIGN.LEFT
+        # Thêm mũi tên kết nối
+        if i < 4:
+            arrow = s3.shapes.add_shape(MSO_SHAPE.RIGHT_ARROW, x_positions[i] + Inches(1.85), Inches(2.75), Inches(0.6), Inches(0.3))
+            arrow.fill.solid()
+            arrow.fill.fore_color.rgb = c_indigo
+            arrow.line.fill.background()
+
+    # Thêm text mô tả chi tiết luồng bên dưới sơ đồ
+    desc_box = s3.shapes.add_textbox(Inches(0.75), Inches(4.2), Inches(11.83), Inches(2.5))
+    tf_desc = desc_box.text_frame
+    tf_desc.word_wrap = True
+    p_desc = tf_desc.paragraphs[0]
+    p_desc.text = "CHI TIẾT LUỒNG TRUYỀN DỮ LIỆU:"
+    p_desc.font.name = 'Inter'
+    p_desc.font.size = Pt(16)
+    p_desc.font.bold = True
+    p_desc.font.color.rgb = c_dark_slate
+    
+    steps = [
+        "Bước 1: Client tải lên ảnh hoặc video từ giao diện Dashboard thông minh.",
+        "Bước 2: FastAPI tiếp nhận yêu cầu, định tuyến file và chuyển tiếp sang module AI xử lý.",
+        "Bước 3: Model YOLO11-seg xác định vùng lỗi và xuất ra mặt nạ đa giác (Segmentation Mask).",
+        "Bước 4: Cắt vùng ảnh lỗi (ROI), đưa sang ResNet18 Classifier để nhận diện nhãn lỗi chi tiết (Dent, Scratch,...).",
+        "Bước 5: Trích xuất diện tích toán học, phân lưới vị trí, tính điểm nghiêm trọng và tạo chatbot VQA phản hồi."
+    ]
+    for step in steps:
+        p = tf_desc.add_paragraph()
+        p.text = step
+        p.font.name = 'Inter'
+        p.font.size = Pt(13)
+        p.font.color.rgb = c_text_main
+        p.space_before = Pt(8)
 
     # -------------------------------------------------------------
-    # SLIDE 4: Bộ dữ liệu MVTec-AD & Tiền xử lý
+    # SLIDE 4: Bộ dữ liệu MVTec-AD (Có ảnh minh họa thực tế)
     # -------------------------------------------------------------
     s4 = prs.slides.add_slide(blank_layout)
     set_slide_background(s4, c_bg_light)
-    add_slide_header(s4, "3. Tập Dữ Liệu MVTec-AD & Tiền Xử Lý")
+    add_slide_header(s4, "3. Tập Dữ Liệu Huấn Luyện MVTec-AD")
     
+    # Cột chữ bên trái
     col1 = s4.shapes.add_textbox(Inches(0.75), Inches(1.8), Inches(5.5), Inches(4.8))
     tf1 = col1.text_frame
     tf1.word_wrap = True
     p1 = tf1.paragraphs[0]
-    p1.text = "TẬP DỮ LIỆU HUẤN LUYỆN"
+    p1.text = "TẬP DỮ LIỆU & TIỀN XỬ LÝ"
     p1.font.name = 'Inter'
     p1.font.size = Pt(20)
     p1.font.bold = True
     p1.font.color.rgb = c_indigo
     
     bullets = [
-        "Sử dụng bộ dữ liệu chuẩn công nghiệp MVTec-AD.",
-        "Mô phỏng các bề mặt sản phẩm kim loại, vỏ chai, dây cáp, gỗ...",
-        "Phân tách rõ hai nhóm: Normal (Bình thường) và Anomaly (Có khuyết tật).",
-        "Gán nhãn đa dạng loại lỗi: Trầy xước (Scratch), nứt (Crack), móp (Dent), thiếu linh kiện (Missing part)."
+        "MVTec Anomaly Detection (MVTec-AD) là bộ dữ liệu chuẩn mực để đánh giá các thuật toán kiểm tra lỗi bề mặt công nghiệp.",
+        "Bao gồm các nhóm sản phẩm cố định, chia làm 2 tập: Normal (Huấn luyện) và Anomaly (Xác thực/Kiểm thử).",
+        "Kích thước ảnh được resize chuẩn hóa về 640x640 pixel.",
+        "Mặt nạ nhãn lỗi được convert đồng bộ sang định dạng YOLO Segment phục vụ quá trình huấn luyện."
     ]
     for b in bullets:
         p = tf1.add_paragraph()
         p.text = "• " + b
         p.font.name = 'Inter'
-        p.font.size = Pt(15)
+        p.font.size = Pt(14)
         p.font.color.rgb = c_text_main
         p.space_before = Pt(12)
         
-    col2 = s4.shapes.add_textbox(Inches(6.8), Inches(1.8), Inches(5.8), Inches(4.8))
-    tf2 = col2.text_frame
-    tf2.word_wrap = True
-    p2 = tf2.paragraphs[0]
-    p2.text = "TIỀN XỬ LÝ HÌNH ẢNH (PREPROCESSING)"
-    p2.font.name = 'Inter'
-    p2.font.size = Pt(20)
-    p2.font.bold = True
-    p2.font.color.rgb = c_cyan
-    
-    bullets2 = [
-        "Thay đổi độ phân giải ảnh về kích thước chuẩn 640x640 pixel phục vụ model.",
-        "Chuẩn hóa giá trị pixel về khoảng [0-1] để tăng tốc hội tụ.",
-        "Làm sạch dữ liệu, loại bỏ các khung hình mờ, nhiễu kỹ thuật lớn.",
-        "Chuyển đổi mặt nạ Segmentation Mask sang định dạng nhãn chuẩn YOLO."
-    ]
-    for b in bullets2:
-        p = tf2.add_paragraph()
-        p.text = "• " + b
+    # Cột ảnh bên phải: Load ảnh labels.jpg từ thư mục train
+    img_labels = os.path.join(run_dir, "labels.jpg")
+    if os.path.exists(img_labels):
+        s4.shapes.add_picture(img_labels, Inches(6.6), Inches(1.8), width=Inches(6.0), height=Inches(4.5))
+    else:
+        # Hộp thoại dự phòng nếu thiếu ảnh
+        placeholder = s4.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(6.6), Inches(1.8), Inches(6.0), Inches(4.5))
+        placeholder.fill.solid()
+        placeholder.fill.fore_color.rgb = RGBColor(226, 232, 240)
+        placeholder.line.color.rgb = c_indigo
+        tf = placeholder.text_frame
+        p = tf.paragraphs[0]
+        p.text = "[Hình ảnh nhãn huấn luyện thực tế]\n\n(Tệp labels.jpg hiển thị các nhãn lớp và đa giác khoanh vùng lỗi MVTec-AD)"
         p.font.name = 'Inter'
-        p.font.size = Pt(15)
-        p.font.color.rgb = c_text_main
-        p.space_before = Pt(12)
+        p.font.size = Pt(14)
+        p.font.color.rgb = c_indigo
+        p.alignment = PP_ALIGN.CENTER
 
     # -------------------------------------------------------------
     # SLIDE 5: Tăng cường dữ liệu (Augmentation)
     # -------------------------------------------------------------
     s5 = prs.slides.add_slide(blank_layout)
     set_slide_background(s5, c_bg_light)
-    add_slide_header(s5, "4. Tăng Cường Dữ Liệu (Augmentation)")
+    add_slide_header(s5, "4. Kỹ Thuật Tăng Cường Dữ Liệu (Augmentation)")
     
     # Thiết kế 4 khối biểu diễn 4 phương pháp Augment
     x_positions = [Inches(0.75), Inches(3.75), Inches(6.75), Inches(9.75)]
     titles = ["🔄 XOAY & LẬT", "☀️ ĐỘ SÁNG", "🔊 NHIỄU GAUSS", "🔎 THU PHÓNG"]
     descs = [
-        "Lật ảnh ngẫu nhiên theo chiều dọc/ngang (Horizontal & Vertical Flip) và xoay tự do.\n\nGiúp mô hình nhận diện khuyết tật không phụ thuộc vào góc quay của sản phẩm trên băng tải.",
+        "Lập ảnh ngẫu nhiên theo chiều dọc/ngang (Horizontal & Vertical Flip) và xoay tự do.\n\nGiúp mô hình nhận diện khuyết tật không phụ thuộc vào góc quay của sản phẩm trên băng tải.",
         "Thay đổi ngẫu nhiên độ sáng, độ tương phản (Brightness/Contrast).\n\nGiúp mô hình ổn định ngay cả khi ánh sáng nhà xưởng thay đổi đột ngột giữa ca ngày và đêm.",
         "Thêm nhiễu Gaussian ngẫu nhiên ở các cấp độ hạt mịn khác nhau.\n\nMô phỏng nhiễu phần cứng từ camera công nghiệp trong môi trường rung động của nhà máy.",
         "Cắt ngẫu nhiên và thu phóng (Random Crop & Scale).\n\nTập trung huấn luyện mô hình nhận diện lỗi ở nhiều tỷ lệ khoảng cách camera xa gần khác nhau."
@@ -326,219 +325,265 @@ def create_presentation():
     # -------------------------------------------------------------
     s6 = prs.slides.add_slide(blank_layout)
     set_slide_background(s6, c_bg_light)
-    add_slide_header(s6, "5. Phát Hiện & Phân Vùng Vùng Lỗi (YOLO11-seg)")
+    add_slide_header(s6, "5. Phân Vùng Lỗi Bề Mặt Bằng YOLO11-seg")
     
+    # Cột chữ bên trái
     col1 = s6.shapes.add_textbox(Inches(0.75), Inches(1.8), Inches(5.5), Inches(4.8))
     tf1 = col1.text_frame
     tf1.word_wrap = True
     p1 = tf1.paragraphs[0]
-    p1.text = "KIẾN TRÚC MÔ HÌNH HỌC SÂU 1"
+    p1.text = "KẾT QUẢ ĐÀO TẠO MÔ HÌNH"
     p1.font.name = 'Inter'
     p1.font.size = Pt(20)
     p1.font.bold = True
     p1.font.color.rgb = c_indigo
     
     bullets = [
-        "Sử dụng YOLO11-seg làm mô hình học sâu chính cho tác vụ đầu chuỗi.",
-        "Thực hiện đồng thời hai tác vụ: Phát hiện vật thể chứa lỗi và Phân vùng lỗi (Instance Segmentation).",
-        "Đầu ra (Output) cung cấp Bounding Box (khung bao lỗi) và đường đa giác Segmentation Mask bao lỗi chi tiết.",
-        "Trọng số tối ưu hóa được xuất ra file best.pt để tích hợp chạy thực tế."
+        "YOLO11-seg làm mô hình phát hiện và tạo mặt nạ phân vùng lỗi (mask) chính xác tới cấp độ pixel.",
+        "Quá trình huấn luyện tối ưu hóa hai chỉ số chính: mAP (Mean Average Precision) và IoU (Intersection over Union).",
+        "Khống chế tỷ lệ bỏ sót khuyết tật nghiêm trọng (False Negative) dưới mức an toàn 1-2%.",
+        "Trọng số huấn luyện tốt nhất được xuất thành best.pt để làm lõi suy luận cho API."
     ]
     for b in bullets:
         p = tf1.add_paragraph()
         p.text = "• " + b
         p.font.name = 'Inter'
-        p.font.size = Pt(15)
+        p.font.size = Pt(14)
         p.font.color.rgb = c_text_main
         p.space_before = Pt(12)
         
-    col2 = s6.shapes.add_textbox(Inches(6.8), Inches(1.8), Inches(5.8), Inches(4.8))
-    tf2 = col2.text_frame
-    tf2.word_wrap = True
-    p2 = tf2.paragraphs[0]
-    p2.text = "CHỈ SỐ THEO DÕI VÀ ĐÁNH GIÁ"
-    p2.font.name = 'Inter'
-    p2.font.size = Pt(20)
-    p2.font.bold = True
-    p2.font.color.rgb = c_cyan
-    
-    bullets2 = [
-        "mAP (Mean Average Precision): Đo lường độ chính xác phát hiện trung bình.",
-        "IoU (Intersection over Union) & Dice Score: Đo lường chất lượng và sự tương đồng của phân vùng mặt nạ lỗi so với nhãn gốc.",
-        "Kiểm soát nghiêm ngặt tỷ lệ bỏ sót lỗi nghiêm trọng (False Negative) bắt buộc dưới 1-2%.",
-        "Hỗ trợ chế độ chạy dự phòng yolo11n-seg.pt (Fallback) để đảm bảo hệ thống không bao giờ dừng hoạt động."
-    ]
-    for b in bullets2:
-        p = tf2.add_paragraph()
-        p.text = "• " + b
+    # Cột ảnh bên phải: Kết quả chạy train (results.png)
+    img_results = os.path.join(run_dir, "results.png")
+    if os.path.exists(img_results):
+        s6.shapes.add_picture(img_results, Inches(6.6), Inches(1.8), width=Inches(6.0), height=Inches(4.5))
+    else:
+        # Hộp thoại dự phòng nếu thiếu ảnh
+        placeholder = s6.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(6.6), Inches(1.8), Inches(6.0), Inches(4.5))
+        placeholder.fill.solid()
+        placeholder.fill.fore_color.rgb = RGBColor(226, 232, 240)
+        placeholder.line.color.rgb = c_indigo
+        tf = placeholder.text_frame
+        p = tf.paragraphs[0]
+        p.text = "[Biểu đồ kết quả huấn luyện]\n\n(Tệp results.png hiển thị các đường cong Loss và mAP trong quá trình Train/Val)"
         p.font.name = 'Inter'
-        p.font.size = Pt(15)
-        p.font.color.rgb = c_text_main
-        p.space_before = Pt(12)
+        p.font.size = Pt(14)
+        p.font.color.rgb = c_indigo
+        p.alignment = PP_ALIGN.CENTER
 
     # -------------------------------------------------------------
     # SLIDE 7: Phân loại loại lỗi chi tiết (Model 2: ResNet18)
     # -------------------------------------------------------------
     s7 = prs.slides.add_slide(blank_layout)
     set_slide_background(s7, c_bg_light)
-    add_slide_header(s7, "6. Phân Loại Loại Lỗi Chi Tiết (ResNet18 Classifier)")
+    add_slide_header(s7, "6. Phân Loại Loại Lỗi Bằng ResNet18 Classifier")
     
+    # Cột chữ bên trái
     col1 = s7.shapes.add_textbox(Inches(0.75), Inches(1.8), Inches(5.5), Inches(4.8))
     tf1 = col1.text_frame
     tf1.word_wrap = True
     p1 = tf1.paragraphs[0]
-    p1.text = "MÔ HÌNH PHÂN LOẠI TUẦN TỰ"
+    p1.text = "NHẬN DIỆN CHI TIẾT TỪNG NHÓM LỖI"
     p1.font.name = 'Inter'
     p1.font.size = Pt(20)
     p1.font.bold = True
     p1.font.color.rgb = c_indigo
     
     bullets = [
-        "Sử dụng mô hình ResNet18 Classifier chạy song hành tuần tự sau YOLO11-seg.",
-        "Nhận diện chính xác tên loại lỗi (Scratch, Dent, Crack...) thay vì chỉ gom nhóm chung là 'lỗi'.",
-        "Trích xuất vùng ảnh lỗi (ROI) từ bounding box của YOLO, mở rộng thêm 15% biên để thu thập ngữ cảnh xung quanh.",
-        "Học sâu phân loại trên tập phân loại lỗi công nghiệp lên tới ~41 lớp lỗi."
+        "Mô hình ResNet18 Classifier chuyên biệt chạy nối tiếp sau khi YOLO11-seg phát hiện vùng khuyết tật.",
+        "Cắt vùng ảnh chứa lỗi (ROI), mở rộng 15% biên để tránh mất đặc trưng góc cạnh, đưa vào phân loại chi tiết.",
+        "Ứng dụng file cấu hình JSON ràng buộc logic: chỉ cho phép phân loại lỗi thuộc danh mục vật lý của nhóm sản phẩm cha.",
+        "Ví dụ minh họa bên phải hiển thị ảnh dự đoán kiểm định (val_batch0_pred) thực tế của mô hình."
     ]
     for b in bullets:
         p = tf1.add_paragraph()
         p.text = "• " + b
         p.font.name = 'Inter'
-        p.font.size = Pt(15)
+        p.font.size = Pt(14)
         p.font.color.rgb = c_text_main
         p.space_before = Pt(12)
         
-    col2 = s7.shapes.add_textbox(Inches(6.8), Inches(1.8), Inches(5.8), Inches(4.8))
-    tf2 = col2.text_frame
-    tf2.word_wrap = True
-    p2 = tf2.paragraphs[0]
-    p2.text = "CƠ CHẾ RÀNG BUỘC PHÂN LOẠI"
-    p2.font.name = 'Inter'
-    p2.font.size = Pt(20)
-    p2.font.bold = True
-    p2.font.color.rgb = c_cyan
-    
-    bullets2 = [
-        "Tích hợp tệp cấu hình JSON định hình mối quan hệ giữa nhóm sản phẩm và các loại lỗi được phép tồn tại.",
-        "Lọc kết quả dự đoán của ResNet18, loại bỏ các lỗi vô lý không thể xảy ra đối với cấu trúc vật lý sản phẩm đó.",
-        "Cung cấp danh sách dự đoán Top-3 kèm độ tin cậy tương ứng.",
-        "Thiết lập cơ chế Fallback Heuristic tự động chuyển sang phân loại dựa trên luật mềm nếu không thể khởi tạo mô hình."
-    ]
-    for b in bullets2:
-        p = tf2.add_paragraph()
-        p.text = "• " + b
+    # Cột ảnh bên phải: Ảnh dự đoán thực tế (val_batch0_pred.jpg)
+    img_preds = os.path.join(run_dir, "val_batch0_pred.jpg")
+    if os.path.exists(img_preds):
+        s7.shapes.add_picture(img_preds, Inches(6.6), Inches(1.8), width=Inches(6.0), height=Inches(4.5))
+    else:
+        # Hộp thoại dự phòng nếu thiếu ảnh
+        placeholder = s7.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(6.6), Inches(1.8), Inches(6.0), Inches(4.5))
+        placeholder.fill.solid()
+        placeholder.fill.fore_color.rgb = RGBColor(226, 232, 240)
+        placeholder.line.color.rgb = c_indigo
+        tf = placeholder.text_frame
+        p = tf.paragraphs[0]
+        p.text = "[Ảnh dự đoán khuyết tật thực tế]\n\n(Tệp val_batch0_pred.jpg hiển thị các nhãn lỗi đè lên vùng ảnh thực tế)"
         p.font.name = 'Inter'
-        p.font.size = Pt(15)
-        p.font.color.rgb = c_text_main
-        p.space_before = Pt(12)
+        p.font.size = Pt(14)
+        p.font.color.rgb = c_indigo
+        p.alignment = PP_ALIGN.CENTER
 
     # -------------------------------------------------------------
-    # SLIDE 8: Trích xuất đặc trưng & Luật QC
+    # SLIDE 8: Trích xuất đặc trưng & Luật QC (Có biểu đồ vẽ bằng shape)
     # -------------------------------------------------------------
     s8 = prs.slides.add_slide(blank_layout)
     set_slide_background(s8, c_bg_light)
-    add_slide_header(s8, "7. Trích Xuất Đặc Trưng Hình Học & Quyết Định QC")
+    add_slide_header(s8, "7. Thuật Toán Trích Xuất & Quyết Định QC")
     
-    col1 = s8.shapes.add_textbox(Inches(0.75), Inches(1.8), Inches(5.5), Inches(4.8))
-    tf1 = col1.text_frame
-    tf1.word_wrap = True
-    p1 = tf1.paragraphs[0]
-    p1.text = "TRÍCH XUẤT ĐẶC TRƯNG HÌNH HỌC"
-    p1.font.name = 'Inter'
-    p1.font.size = Pt(20)
-    p1.font.bold = True
-    p1.font.color.rgb = c_indigo
+    # Cột bên trái: Trực quan hóa trọng số tính điểm bằng shape
+    left_title = s8.shapes.add_textbox(Inches(0.75), Inches(1.8), Inches(5.5), Inches(0.5))
+    left_title.text_frame.paragraphs[0].text = "PHÂN BỔ TRỌNG SỐ SEVERITY (0-100)"
+    left_title.text_frame.paragraphs[0].font.name = 'Inter'
+    left_title.text_frame.paragraphs[0].font.size = Pt(18)
+    left_title.text_frame.paragraphs[0].font.bold = True
+    left_title.text_frame.paragraphs[0].font.color.rgb = c_indigo
     
-    bullets = [
-        "Diện tích (Area): Tính toán diện tích vùng lỗi bằng công thức đa giác Shoelace trên tọa độ polygon của mask.",
-        "Vị trí (Position): Chia bề mặt sản phẩm thành lưới 9 khu vực (9-zone grid), xác định lỗi nằm ở vị trí nào.",
-        "Độ nghiêm trọng (Severity Score): Thang điểm 0-100 tính dựa trên tỉ lệ diện tích (40%) + vị trí lỗi tâm hay biên (30%) + độ tin cậy AI (30%)."
-    ]
-    for b in bullets:
-        p = tf1.add_paragraph()
-        p.text = "• " + b
+    labels = ["Diện tích lỗi (Shoelace)", "Vị trí lỗi (Lưới 9 vùng)", "Độ tin cậy mô hình AI"]
+    weights = [0.4, 0.3, 0.3]
+    fills = [c_indigo, c_cyan, c_green]
+    
+    for i in range(3):
+        # Nhãn
+        lbl_box = s8.shapes.add_textbox(Inches(0.75), Inches(2.4 + i*1.0), Inches(5.5), Inches(0.4))
+        p = lbl_box.text_frame.paragraphs[0]
+        p.text = f"{labels[i]} ({int(weights[i]*100)}%)"
         p.font.name = 'Inter'
-        p.font.size = Pt(15)
+        p.font.size = Pt(13)
+        p.font.bold = True
         p.font.color.rgb = c_text_main
-        p.space_before = Pt(12)
         
-    col2 = s8.shapes.add_textbox(Inches(6.8), Inches(1.8), Inches(5.8), Inches(4.8))
-    tf2 = col2.text_frame
-    tf2.word_wrap = True
-    p2 = tf2.paragraphs[0]
-    p2.text = "LUẬT RA QUYẾT ĐỊNH QC"
-    p2.font.name = 'Inter'
-    p2.font.size = Pt(20)
-    p2.font.bold = True
-    p2.font.color.rgb = c_cyan
+        # Thanh nền
+        bg_bar = s8.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.75), Inches(2.8 + i*1.0), Inches(5.0), Inches(0.2))
+        bg_bar.fill.solid()
+        bg_bar.fill.fore_color.rgb = RGBColor(226, 232, 240)
+        bg_bar.line.fill.background()
+        
+        # Thanh đầy
+        fill_bar = s8.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.75), Inches(2.8 + i*1.0), Inches(5.0 * weights[i]), Inches(0.2))
+        fill_bar.fill.solid()
+        fill_bar.fill.fore_color.rgb = fills[i]
+        fill_bar.line.fill.background()
+        
+    # Công thức toán học
+    f_box = s8.shapes.add_textbox(Inches(0.75), Inches(5.5), Inches(5.0), Inches(1.0))
+    tf_f = f_box.text_frame
+    tf_f.word_wrap = True
+    p_f = tf_f.paragraphs[0]
+    p_f.text = "Công thức Severity Score:\nSeverity = (Area * 0.4) + (Pos * 0.3) + (Conf * 0.3)"
+    p_f.font.name = 'Courier New'
+    p_f.font.size = Pt(13)
+    p_f.font.bold = True
+    p_f.font.color.rgb = c_indigo
     
-    bullets2 = [
-        "ĐẠT (PASS): Sản phẩm sạch hoàn toàn hoặc các lỗi phát hiện chỉ có độ nghiêm trọng ở mức thấp (Low Severity < 25).",
-        "CẢNH BÁO (FLAG): Phát hiện có từ 1 đến 2 lỗi ở mức độ trung bình (Medium Severity: 25-50) ➔ Chuyển qua luồng kiểm tra lại thủ công.",
-        "KHÔNG ĐẠT (REJECT): Có nhiều hơn 2 lỗi Medium hoặc tồn tại bất kỳ lỗi nào ở mức độ cao (High / Critical Severity > 50) ➔ Hủy bỏ sản phẩm."
+    # Cột bên phải: Quyết định QC (Có vẽ thẻ màu bằng Shape)
+    col2_title = s8.shapes.add_textbox(Inches(6.8), Inches(1.8), Inches(5.8), Inches(0.5))
+    col2_title.text_frame.paragraphs[0].text = "HỆ THỐNG QUYẾT ĐỊNH QC CHUẨN"
+    col2_title.text_frame.paragraphs[0].font.name = 'Inter'
+    col2_title.text_frame.paragraphs[0].font.size = Pt(18)
+    col2_title.text_frame.paragraphs[0].font.bold = True
+    col2_title.text_frame.paragraphs[0].font.color.rgb = c_cyan
+    
+    decisions = [
+        ("PASS (ĐẠT)", "Sản phẩm không có lỗi hoặc toàn bộ lỗi được phát hiện chỉ có mức độ nghiêm trọng thấp (Severity < 25).", c_green),
+        ("FLAG (CẢNH BÁO)", "Phát hiện có từ 1 đến 2 lỗi ở mức độ trung bình (Severity: 25 - 50) ➔ Chuyển qua luồng kiểm định lại thủ công.", c_amber),
+        ("REJECT (LỖI)", "Có từ 3 lỗi Medium trở lên, hoặc xuất hiện bất kỳ lỗi nào ở mức độ cao (Severity > 50) ➔ Huỷ sản phẩm.", c_red)
     ]
-    for b in bullets2:
-        p = tf2.add_paragraph()
-        p.text = "• " + b
+    for i, (title, desc, color) in enumerate(decisions):
+        card = s8.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.8), Inches(2.4 + i*1.5), Inches(5.8), Inches(1.2))
+        card.fill.solid()
+        card.fill.fore_color.rgb = RGBColor(241, 245, 249)
+        card.line.color.rgb = color
+        card.line.width = Pt(2)
+        
+        tf = card.text_frame
+        tf.word_wrap = True
+        p = tf.paragraphs[0]
+        p.text = title
         p.font.name = 'Inter'
-        p.font.size = Pt(15)
-        p.font.color.rgb = c_text_main
-        p.space_before = Pt(12)
+        p.font.size = Pt(14)
+        p.font.bold = True
+        p.font.color.rgb = color
+        
+        p2 = tf.add_paragraph()
+        p2.text = desc
+        p2.font.name = 'Inter'
+        p2.font.size = Pt(11.5)
+        p2.font.color.rgb = c_text_main
+        p2.space_before = Pt(4)
 
     # -------------------------------------------------------------
-    # SLIDE 9: Động cơ Hỏi Đáp VQA
+    # SLIDE 9: Động cơ Hỏi Đáp VQA (Có sơ đồ luồng shape)
     # -------------------------------------------------------------
     s9 = prs.slides.add_slide(blank_layout)
     set_slide_background(s9, c_bg_light)
     add_slide_header(s9, "8. Động Cơ Hỏi Đáp Ngữ Cảnh Đa Ngôn Ngữ (VQA)")
     
+    # Cột chữ bên trái
     col1 = s9.shapes.add_textbox(Inches(0.75), Inches(1.8), Inches(5.5), Inches(4.8))
     tf1 = col1.text_frame
     tf1.word_wrap = True
     p1 = tf1.paragraphs[0]
-    p1.text = "CƠ CHẾ PHÂN CẤP ƯU TIÊN 3 TẦNG"
+    p1.text = "VQA CHATBOT ĐA NGÔN NGỮ"
     p1.font.name = 'Inter'
     p1.font.size = Pt(20)
     p1.font.bold = True
     p1.font.color.rgb = c_indigo
     
     bullets = [
-        "Tầng 1 (Context-aware): Trích xuất thông tin trực tiếp từ báo cáo QC (tổng lỗi, mức độ nghiêm trọng, vị trí lỗi). Ưu tiên tốc độ xử lý nhanh nhất.",
-        "Tầng 2 (Deep Learning): Sử dụng mô hình Transformer ViLT trực tuyến để xử lý các câu hỏi trực quan tổng quát hơn ngoài phạm vi báo cáo QC.",
-        "Tầng 3 (Keyword Fallback): Bộ so khớp từ khóa dự phòng có sẵn tiếng Việt và tiếng Anh để đưa ra phản hồi logic, mượt mà."
+        "Người vận hành tương tác trực tiếp bằng câu hỏi ngôn ngữ tự nhiên để tra cứu thông tin lỗi nhanh chóng.",
+        "Bộ quét ngôn ngữ tự động phát hiện câu hỏi tiếng Việt dựa trên sự xuất hiện của các từ khóa đặc trưng tiếng Việt.",
+        "Phản hồi tiếng Việt động trực tiếp từ kết quả phân tích chất lượng của sản phẩm (loại lỗi, vị trí, kết luận, khuyến cáo).",
+        "Có lưu trữ context cục bộ tại frontend để tự động chuyển tiếp dữ liệu phân tích sang VQA chat bubble."
     ]
     for b in bullets:
         p = tf1.add_paragraph()
         p.text = "• " + b
         p.font.name = 'Inter'
-        p.font.size = Pt(15)
+        p.font.size = Pt(14)
         p.font.color.rgb = c_text_main
         p.space_before = Pt(12)
         
-    col2 = s9.shapes.add_textbox(Inches(6.8), Inches(1.8), Inches(5.8), Inches(4.8))
-    tf2 = col2.text_frame
-    tf2.word_wrap = True
-    p2 = tf2.paragraphs[0]
-    p2.text = "BẢN ĐỊA HÓA TIẾNG VIỆT ĐỘNG"
-    p2.font.name = 'Inter'
-    p2.font.size = Pt(20)
-    p2.font.bold = True
-    p2.font.color.rgb = c_cyan
+    # Cột vẽ sơ đồ phân cấp VQA bên phải
+    col2_title = s9.shapes.add_textbox(Inches(6.8), Inches(1.8), Inches(5.8), Inches(0.5))
+    col2_title.text_frame.paragraphs[0].text = "QUY TRÌNH PHÂN CẤP ƯU TIÊN 3 TẦNG"
+    col2_title.text_frame.paragraphs[0].font.name = 'Inter'
+    col2_title.text_frame.paragraphs[0].font.size = Pt(18)
+    col2_title.text_frame.paragraphs[0].font.bold = True
+    col2_title.text_frame.paragraphs[0].font.color.rgb = c_cyan
     
-    bullets2 = [
-        "Tự động quét và phát hiện ngôn ngữ câu hỏi dựa trên các từ khóa tiếng Việt.",
-        "Phản hồi trực quan bằng tiếng Việt cho 8 chủ đề chính: Có lỗi không, độ nghiêm trọng, vị trí, kết quả QC, số lượng lỗi, loại lỗi, khuyến cáo và báo cáo tóm tắt.",
-        "Hỗ trợ ghi nhớ context: Sử dụng biến toàn cục ở frontend để tự động chuyển tiếp dữ liệu phân tích sang VQA chat."
+    vqa_levels = [
+        ("TẦNG 1: CONTEXT-AWARE", "Trích xuất nhanh số liệu từ báo cáo QC. Phản hồi tiếng Việt/Anh tức thì.", c_cyan),
+        ("TẦNG 2: DEEP LEARNING (ViLT)", "Gọi model dandelin/vilt-b32 để phân tích trực quan tổng thể.", c_indigo),
+        ("TẦNG 3: KEYWORD FALLBACK", "Đối khớp từ khóa thô khi mất kết nối mạng hoặc không có ảnh.", c_dark_slate)
     ]
-    for b in bullets2:
-        p = tf2.add_paragraph()
-        p.text = "• " + b
+    for i, (title, desc, color) in enumerate(vqa_levels):
+        box = s9.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.8), Inches(2.4 + i*1.5), Inches(5.8), Inches(1.1))
+        box.fill.solid()
+        box.fill.fore_color.rgb = color
+        box.line.fill.background()
+        
+        tf = box.text_frame
+        tf.word_wrap = True
+        p = tf.paragraphs[0]
+        p.text = title
         p.font.name = 'Inter'
-        p.font.size = Pt(15)
-        p.font.color.rgb = c_text_main
-        p.space_before = Pt(12)
+        p.font.size = Pt(13)
+        p.font.bold = True
+        p.font.color.rgb = c_text_white
+        
+        p2 = tf.add_paragraph()
+        p2.text = desc
+        p2.font.name = 'Inter'
+        p2.font.size = Pt(11)
+        p2.font.color.rgb = RGBColor(226, 232, 240)
+        p2.space_before = Pt(4)
+        
+        # Mũi tên đi xuống giữa các tầng
+        if i < 2:
+            arrow = s9.shapes.add_shape(MSO_SHAPE.DOWN_ARROW, Inches(9.5), Inches(3.55 + i*1.5), Inches(0.4), Inches(0.3))
+            arrow.fill.solid()
+            arrow.fill.fore_color.rgb = c_indigo
+            arrow.line.fill.background()
 
     # -------------------------------------------------------------
-    # SLIDE 10: Kết luận & Hướng phát triển
+    # SLIDE 10: Kết luận & Hướng phát triển (Có ảnh Matrix thực tế)
     # -------------------------------------------------------------
     s10 = prs.slides.add_slide(blank_layout)
     set_slide_background(s10, c_dark_slate)
@@ -549,6 +594,7 @@ def create_presentation():
     left_bar.fill.fore_color.rgb = c_cyan
     left_bar.line.fill.background()
     
+    # Cột chữ bên trái
     col1 = s10.shapes.add_textbox(Inches(1.0), Inches(1.5), Inches(5.2), Inches(5.0))
     tf1 = col1.text_frame
     tf1.word_wrap = True
@@ -562,41 +608,56 @@ def create_presentation():
     bullets = [
         "Xây dựng thành công hệ thống tích hợp mượt mà giữa AI Vision và Dashboard quản lý.",
         "Tỉ lệ bỏ sót lỗi nghiêm trọng rất thấp (< 1-2%), đáp ứng yêu cầu chất lượng công nghiệp.",
-        "Dashboard trực quan hóa cao cấp, thao tác đơn giản và hỗ trợ VQA phản hồi cực nhạy."
+        "Dashboard trực quan hóa cao cấp, thao tác đơn giản và hỗ trợ VQA phản hồi tiếng Việt cực nhạy."
     ]
     for b in bullets:
         p = tf1.add_paragraph()
         p.text = "• " + b
         p.font.name = 'Inter'
-        p.font.size = Pt(15)
+        p.font.size = Pt(14)
         p.font.color.rgb = RGBColor(226, 232, 240)
         p.space_before = Pt(16)
         
-    col2 = s10.shapes.add_textbox(Inches(6.8), Inches(1.5), Inches(5.8), Inches(5.0))
-    tf2 = col2.text_frame
-    tf2.word_wrap = True
-    p2 = tf2.paragraphs[0]
-    p2.text = "HƯỚNG PHÁT TRIỂN TIẾP THEO"
-    p2.font.name = 'Inter'
-    p2.font.size = Pt(24)
-    p2.font.bold = True
-    p2.font.color.rgb = c_text_white
+    p_future = tf1.add_paragraph()
+    p_future.text = "HƯỚNG PHÁT TRIỂN TIẾP THEO"
+    p_future.font.name = 'Inter'
+    p_future.font.size = Pt(24)
+    p_future.font.bold = True
+    p_future.font.color.rgb = c_text_white
+    p_future.space_before = Pt(30)
     
     bullets2 = [
-        "Tối ưu hóa tốc độ suy luận (Inference Speed) bằng TensorRT để chạy ổn định trên thiết bị nhúng (Nvidia Jetson) ở rìa băng chuyền.",
-        "Tích hợp kết nối trực tiếp với các thiết bị vật lý công nghiệp PLC, cánh tay robot để tự động gạt sản phẩm lỗi.",
-        "Huấn luyện mở rộng thêm các nhóm sản phẩm và khuyết tật bề mặt mới."
+        "Tối ưu hóa tốc độ suy luận bằng TensorRT để chạy ổn định trên thiết bị nhúng Nvidia Jetson cạnh băng chuyền.",
+        "Tích hợp kết nối trực tiếp với các thiết bị vật lý công nghiệp PLC, cánh tay robot để tự động gạt sản phẩm lỗi."
     ]
     for b in bullets2:
-        p = tf2.add_paragraph()
+        p = tf1.add_paragraph()
         p.text = "• " + b
         p.font.name = 'Inter'
-        p.font.size = Pt(15)
+        p.font.size = Pt(14)
         p.font.color.rgb = RGBColor(226, 232, 240)
-        p.space_before = Pt(16)
+        p.space_before = Pt(12)
+
+    # Cột ảnh bên phải: Confusion Matrix (confusion_matrix.png)
+    img_matrix = os.path.join(run_dir, "confusion_matrix.png")
+    if os.path.exists(img_matrix):
+        s10.shapes.add_picture(img_matrix, Inches(6.8), Inches(1.5), width=Inches(5.5), height=Inches(4.5))
+    else:
+        # Hộp thoại dự phòng nếu thiếu ảnh
+        placeholder = s10.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(6.8), Inches(1.5), Inches(5.5), Inches(4.5))
+        placeholder.fill.solid()
+        placeholder.fill.fore_color.rgb = RGBColor(30, 41, 59)
+        placeholder.line.color.rgb = c_cyan
+        tf = placeholder.text_frame
+        p = tf.paragraphs[0]
+        p.text = "[Ma trận nhầm lẫn - Confusion Matrix]\n\n(Tệp confusion_matrix.png hiển thị hiệu suất phân loại thực tế của mô hình)"
+        p.font.name = 'Inter'
+        p.font.size = Pt(14)
+        p.font.color.rgb = c_cyan
+        p.alignment = PP_ALIGN.CENTER
 
     # Lưu tệp PowerPoint
-    output_filename = "presentation_ai_qc.pptx"
+    output_filename = "presentation_ai_qc_with_diagrams.pptx"
     prs.save(output_filename)
     print("Presentation saved successfully: " + os.path.abspath(output_filename))
 
