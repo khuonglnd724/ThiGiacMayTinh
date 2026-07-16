@@ -87,3 +87,16 @@
 - **Vấn đề**: Hàm `displayResults()` cộng chuỗi trực tiếp giá trị `report.verdict` (đang là một đối tượng dict chứa `result`, `reason`, `action_required`) vào HTML khiến nó hiển thị thành `[object Object]`.
 - **Sửa**: Phân rã an toàn `report.verdict` trong `displayResults()`. Nếu là object thì lấy thuộc tính `result` làm trạng thái (ĐẠT / CẢNH BÁO / KHÔNG ĐẠT) và `reason` làm mô tả chi tiết, đồng thời đổi icon kết quả động tương ứng.
 
+---
+
+## 2026-07-16 12:16
+
+### Task: Tạo trang HTML mô tả sơ đồ, biểu đồ dự án phục vụ báo cáo PowerPoint
+- **File**: `presentation_diagrams.html` [NEW]
+- **Sửa**: Tạo mới trang HTML trực quan hóa 4 slide biểu đồ chính bằng CSS sạch, hiện đại:
+  - Slide 1: Kiến trúc luồng hệ thống tổng thể (Client -> FastAPI -> YOLO11-seg + ResNet18 -> Logic).
+  - Slide 2: Pipeline quy trình huấn luyện AI (MVTec AD -> Preprocessing -> Augmentation -> YOLO11-seg -> best.pt).
+  - Slide 3: Công thức tính điểm độ nghiêm trọng (Severity weights) & Trạng thái kết luận QC (PASS/FLAG/REJECT).
+  - Slide 4: Quy trình 3 tầng phân cấp xử lý hỏi đáp VQA (Context-aware -> ViLT -> Keyword Fallback).
+
+
