@@ -109,5 +109,20 @@
   - Viết kịch bản tự động kiểm tra và cài đặt thư viện `python-pptx` và sinh file PowerPoint widescreen (16:9) tự động.
   - Thiết kế và xuất bản tệp `presentation_ai_qc.pptx` gồm 10 slide chuyên nghiệp (Title, Problem, Architecture, Dataset, Augmentation, YOLO11-seg, ResNet18, Feature Extraction, VQA, Conclusion) theo đúng nội dung và hướng dẫn slide, sử dụng bảng màu Slate & Indigo tinh tế.
 
+---
+
+## 2026-07-16 12:25
+
+### Task: Nhúng sơ đồ hình vẽ bản địa và chèn ảnh kiểm định thực tế vào PowerPoint (.pptx)
+- **File**: `generate_pptx.py` (sửa đổi), `presentation_ai_qc_with_diagrams.pptx` [NEW]
+- **Vấn đề**:
+  - Tệp PowerPoint trước đó chưa có sơ đồ hình khối động và chưa nhúng các biểu đồ kiểm thử thực tế.
+  - Tệp `presentation_ai_qc.pptx` bị lỗi khóa quyền ghi (Permission denied) khi người dùng đang mở xem.
+- **Sửa**:
+  - Chuyển hướng lưu tệp sang `presentation_ai_qc_with_diagrams.pptx` để tránh lỗi khóa tệp của Windows.
+  - Viết code vẽ các sơ đồ hình khối (Nodes), mũi tên chỉ hướng (Right/Down Arrows) bằng shape bản địa PowerPoint ở các slide: Kiến trúc hệ thống, Phân bố trọng số Severity, Phân tầng VQA.
+  - Quét kiểm tra và tự động nhúng các biểu đồ huấn luyện thực tế từ thư mục `runs/` (như `labels.jpg`, `results.png`, `val_batch0_pred.jpg`, `confusion_matrix.png`) vào các Slide tương ứng nếu tồn tại, giúp slide chân thực hơn.
+
+
 
 
