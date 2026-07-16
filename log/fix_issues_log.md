@@ -123,6 +123,25 @@
   - Viết code vẽ các sơ đồ hình khối (Nodes), mũi tên chỉ hướng (Right/Down Arrows) bằng shape bản địa PowerPoint ở các slide: Kiến trúc hệ thống, Phân bố trọng số Severity, Phân tầng VQA.
   - Quét kiểm tra và tự động nhúng các biểu đồ huấn luyện thực tế từ thư mục `runs/` (như `labels.jpg`, `results.png`, `val_batch0_pred.jpg`, `confusion_matrix.png`) vào các Slide tương ứng nếu tồn tại, giúp slide chân thực hơn.
 
+---
+
+## 2026-07-16 12:45
+
+### Task: Thiết kế nâng cấp Infographic Đại hội VI trên nền d.png & xuất PDF
+- **File**: `d:\h_Nam_3\hocki2nam2025_2026_nam3\Lịch sử đảng\infographic\index.html` (sửa đổi), `infographic_dai_hoi_vi.pdf` [NEW]
+- **Vấn đề**:
+  - Giao diện infographic chưa sử dụng khung mẫu background `d.png`.
+  - Tiêu đề phụ cần đổi từ "Đảng Cộng sản Việt Nam" thành "Đại hội đại biểu toàn quốc lần thứ VI".
+  - Cần nâng cao tính nghệ thuật và xuất file PDF chất lượng cao.
+- **Sửa**:
+  - Tải font chữ serif nghệ thuật `Lora` từ Google Fonts cho các tiêu đề chính/phụ.
+  - Thiết lập hình nền `d.png` cho khung poster `.a4-poster`.
+  - Điều chỉnh `header` thành nền trong suốt, ẩn các icon cờ trùng lặp để nhường không gian hiển thị cho các chi tiết cờ và ảnh có sẵn trên ảnh nền.
+  - Sửa tiêu đề phụ thành "ĐẠI HỘI ĐẠI BIỂU TOÀN QUỐC LẦN THỨ VI" và thiết kế màu chữ đồng điệu, nổi bật.
+  - Chuyển thanh tiêu đề phần (.section-bar) sang trong suốt và dịch chuyển sang phải bằng padding để tránh chồng lấn lên các chữ số thứ tự 1, 2, 3 in sẵn trên ảnh nền.
+  - Viết code tự động gọi trình duyệt Edge ở chế độ headless để xuất bản tệp `infographic_dai_hoi_vi.pdf` hoàn hảo không lề.
+
+
 
 
 
