@@ -87,61 +87,9 @@
 - **Vấn đề**: Hàm `displayResults()` cộng chuỗi trực tiếp giá trị `report.verdict` (đang là một đối tượng dict chứa `result`, `reason`, `action_required`) vào HTML khiến nó hiển thị thành `[object Object]`.
 - **Sửa**: Phân rã an toàn `report.verdict` trong `displayResults()`. Nếu là object thì lấy thuộc tính `result` làm trạng thái (ĐẠT / CẢNH BÁO / KHÔNG ĐẠT) và `reason` làm mô tả chi tiết, đồng thời đổi icon kết quả động tương ứng.
 
----
-
-## 2026-07-16 12:16
-
-### Task: Tạo trang HTML mô tả sơ đồ, biểu đồ dự án phục vụ báo cáo PowerPoint
-- **File**: `presentation_diagrams.html` [NEW]
-- **Sửa**: Tạo mới trang HTML trực quan hóa 4 slide biểu đồ chính bằng CSS sạch, hiện đại:
-  - Slide 1: Kiến trúc luồng hệ thống tổng thể (Client -> FastAPI -> YOLO11-seg + ResNet18 -> Logic).
-  - Slide 2: Pipeline quy trình huấn luyện AI (MVTec AD -> Preprocessing -> Augmentation -> YOLO11-seg -> best.pt).
-  - Slide 3: Công thức tính điểm độ nghiêm trọng (Severity weights) & Trạng thái kết luận QC (PASS/FLAG/REJECT).
-  - Slide 4: Quy trình 3 tầng phân cấp xử lý hỏi đáp VQA (Context-aware -> ViLT -> Keyword Fallback).
-
----
-
-## 2026-07-16 12:21
-
-### Task: Tạo file thuyết trình PowerPoint 10 slide hoàn chỉnh (.pptx)
-- **File**: `generate_pptx.py` [NEW], `presentation_ai_qc.pptx` [NEW]
-- **Sửa**:
-  - Viết kịch bản tự động kiểm tra và cài đặt thư viện `python-pptx` và sinh file PowerPoint widescreen (16:9) tự động.
-  - Thiết kế và xuất bản tệp `presentation_ai_qc.pptx` gồm 10 slide chuyên nghiệp (Title, Problem, Architecture, Dataset, Augmentation, YOLO11-seg, ResNet18, Feature Extraction, VQA, Conclusion) theo đúng nội dung và hướng dẫn slide, sử dụng bảng màu Slate & Indigo tinh tế.
-
----
-
-## 2026-07-16 12:25
-
-### Task: Nhúng sơ đồ hình vẽ bản địa và chèn ảnh kiểm định thực tế vào PowerPoint (.pptx)
-- **File**: `generate_pptx.py` (sửa đổi), `presentation_ai_qc_with_diagrams.pptx` [NEW]
-- **Vấn đề**:
-  - Tệp PowerPoint trước đó chưa có sơ đồ hình khối động và chưa nhúng các biểu đồ kiểm thử thực tế.
-  - Tệp `presentation_ai_qc.pptx` bị lỗi khóa quyền ghi (Permission denied) khi người dùng đang mở xem.
-- **Sửa**:
-  - Chuyển hướng lưu tệp sang `presentation_ai_qc_with_diagrams.pptx` để tránh lỗi khóa tệp của Windows.
-  - Viết code vẽ các sơ đồ hình khối (Nodes), mũi tên chỉ hướng (Right/Down Arrows) bằng shape bản địa PowerPoint ở các slide: Kiến trúc hệ thống, Phân bố trọng số Severity, Phân tầng VQA.
-  - Quét kiểm tra và tự động nhúng các biểu đồ huấn luyện thực tế từ thư mục `runs/` (như `labels.jpg`, `results.png`, `val_batch0_pred.jpg`, `confusion_matrix.png`) vào các Slide tương ứng nếu tồn tại, giúp slide chân thực hơn.
-
----
-
-## 2026-07-16 12:45
-
-### Task: Thiết kế nâng cấp Infographic Đại hội VI trên nền d.png & xuất PDF
-- **File**: `d:\h_Nam_3\hocki2nam2025_2026_nam3\Lịch sử đảng\infographic\index.html` (sửa đổi), `infographic_dai_hoi_vi.pdf` [NEW]
-- **Vấn đề**:
-  - Giao diện infographic chưa sử dụng khung mẫu background `d.png`.
-  - Tiêu đề phụ cần đổi từ "Đảng Cộng sản Việt Nam" thành "Đại hội đại biểu toàn quốc lần thứ VI".
-  - Cần nâng cao tính nghệ thuật và xuất file PDF chất lượng cao.
-- **Sửa**:
-  - Tải font chữ serif nghệ thuật `Lora` từ Google Fonts cho các tiêu đề chính/phụ.
-  - Thiết lập hình nền `d.png` cho khung poster `.a4-poster`.
-  - Điều chỉnh `header` thành nền trong suốt, ẩn các icon cờ trùng lặp để nhường không gian hiển thị cho các chi tiết cờ và ảnh có sẵn trên ảnh nền.
-  - Sửa tiêu đề phụ thành "ĐẠI HỘI ĐẠI BIỂU TOÀN QUỐC LẦN THỨ VI" và thiết kế màu chữ đồng điệu, nổi bật.
-  - Chuyển thanh tiêu đề phần (.section-bar) sang trong suốt và dịch chuyển sang phải bằng padding để tránh chồng lấn lên các chữ số thứ tự 1, 2, 3 in sẵn trên ảnh nền.
-  - Viết code tự động gọi trình duyệt Edge ở chế độ headless để xuất bản tệp `infographic_dai_hoi_vi.pdf` hoàn hảo không lề.
 
 
+\
 
 
 
